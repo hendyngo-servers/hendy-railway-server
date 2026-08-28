@@ -1,67 +1,84 @@
 const { WebSocketServer } = require('ws');
 
-// Railway sẽ tự cấp phát cổng thông qua biến môi trường process.env.PORT
 const PORT = process.env.PORT || 8080;
 const wss = new WebSocketServer({ port: PORT });
 
-// Lưu trữ danh sách các Worker/Client đang kết nối kèm metadata
+// Lưu trữ danh sách chi tiết các Client đang kết nối
 const clientsMap = new Map();
 
-console.log(`[HenDy WebSocket Server V2] Đang khởi động trên cổng ${PORT}`);
+console.log(`[HenDy WebSocket Server PRO] Đang khởi động trên cổng ${PORT}`);
 
 wss.on('connection', (ws) => {
-    console.log('[+] Một Client (Master hoặc Worker) vừa kết nối thành công!');
+    let clientId = 'slave_' + Math.random().toString(36).substring(2, 7);
     
-    // Gán ID tạm thời cho client cho đến khi nhận được gói tin đăng ký
-    let clientId = 'unknown_' + Math.random().toString(36).substring(2, 7);
-    clientsMap.set(ws, { id: clientId, role: 'WORKER', name: 'Đang tải...' });
+    // Khởi tạo thông tin mặc định cho client mới
+    clientsMap.set(ws, {
+        id: clientId,
+        name: 'Chưa đặt tên',
+        role: 'WORKER',
+        note: 'SC88',
+        isOk: true,
+        captchaSrc: '',
+        lastActive: Date.now()
+    });
 
-    // Gửi tín hiệu ping nội bộ để duy trì kết nối
+    console.log(`[+] Client mới kết nối (Tạm thời ID: ${clientId})`);
+
+    // Gửi tín hiệu giữ kết nối mỗi 25 giây (Chống timeout trên Railway)
     const heartbeatInterval = setInterval(() => {
         if (ws.readyState === ws.OPEN) {
-            ws.ping();
+            ws.send(JSON.stringify({ action: 'SYNC_PING_REQUEST' }));
         }
-    }, 30000);
+    }, 25000);
 
-    // Nhận thông điệp từ Master Hub hoặc Worker
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message.toString());
-            
-            // 1. Nếu là gói đăng ký hoặc cập nhật trạng thái từ Slave/Worker
+            let clientMeta = clientsMap.get(ws) || {};
+
+            // 1. Cập nhật thông tin chi tiết khi Slave đăng ký hoặc báo cáo trạng thái
             if (data.action === 'SYNC_REGISTER_TAB' && data.value) {
                 clientId = data.value.id || clientId;
-                clientsMap.set(ws, {
+                clientMeta = {
                     id: clientId,
-                    name: data.value.name || 'Không tên',
+                    name: data.value.name || clientMeta.name,
                     role: data.value.role || 'WORKER',
-                    note: data.value.note || 'N/A',
+                    note: data.value.note || 'SC88',
                     isOk: data.value.isOk,
+                    captchaSrc: data.value.captchaSrc || '',
                     lastActive: Date.now()
-                });
-                console.log(`[SYNC] Đã cập nhật trạng thái Client: ${clientId} (${data.value.name})`);
+                };
+                clientsMap.set(ws, clientMeta);
             }
 
-            // 2. Định tuyến tin nhắn (Hỗ trợ targetIds hoặc Broadcast toàn bộ)
+            // 2. Tính năng mới: Master yêu cầu lấy danh sách toàn bộ Worker đang online
+            if (data.action === 'GET_ALL_WORKERS') {
+                const activeWorkers = Array.from(clientsMap.values());
+                ws.send(JSON.stringify({
+                    action: 'SYNC_WORKERS_LIST',
+                    value: activeWorkers
+                }));
+                return;
+            }
+
+            // 3. Định tuyến tin nhắn thông minh (Broadcast hoặc gửi đích danh targetIds)
             wss.clients.forEach((client) => {
                 if (client.readyState === ws.OPEN) {
-                    // Nếu gói tin có chỉ định rõ targetIds cụ thể
                     if (data.targetIds && Array.isArray(data.targetIds) && data.targetIds.length > 0) {
                         const targetMeta = clientsMap.get(client);
                         if (targetMeta && data.targetIds.includes(targetMeta.id)) {
                             client.send(JSON.stringify(data));
                         }
                     } else {
-                        // Broadcast chung cho tất cả nếu không giới hạn người nhận
+                        // Tránh gửi ngược lại chính thằng vừa gửi tin (nếu cần thiết, ở đây giữ nguyên broadcast)
                         client.send(message.toString());
                     }
                 }
             });
 
         } catch (e) {
-            // Trường hợp message là dạng chuỗi thuần túy không phải JSON
+            // Trường hợp dữ liệu là tin nhắn thuần (không phải JSON)
             const msgStr = message.toString();
-            console.log(`[Đang chuyển tiếp tin nhắn thuần]: ${msgStr}`);
             wss.clients.forEach((client) => {
                 if (client.readyState === ws.OPEN) {
                     client.send(msgStr);
@@ -70,14 +87,13 @@ wss.on('connection', (ws) => {
         }
     });
 
-    // Khi client ngắt kết nối
     ws.on('close', () => {
         clearInterval(heartbeatInterval);
         clientsMap.delete(ws);
-        console.log(`[-] Một Client (${clientId}) đã ngắt kết nối.`);
+        console.log(`[-] Client (${clientId}) đã ngắt kết nối.`);
     });
 
     ws.on('error', (error) => {
-        console.error(`[!] Lỗi kết nối từ client ${clientId}:`, error.message);
+        console.error(`[!] Lỗi kết nối client:`, error.message);
     });
 });
