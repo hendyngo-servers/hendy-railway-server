@@ -226,6 +226,23 @@
             color: #38bdf8;
         }
         .custom-file-upload:hover { background: #1e293b; }
+        .sim-input-box {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .sim-input-box input {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #fff;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            outline: none;
+        }
+        .sim-input-box input:focus {
+            border-color: var(--color-accent);
+        }
     </style>
 </head>
 <body>
@@ -260,10 +277,17 @@
             </div>
             
             <div class="panel-body" style="margin-top: 10px;">
+                <!-- Ô thay đổi Tên_Người_Gửi và Nội_dung_bình_luận cho các nút giả lập -->
+                <div class="sim-input-box">
+                    <input type="text" id="simSenderInput" placeholder="Tên Người Gửi" value="Mod_Master" style="width: 130px;" />
+                    <input type="text" id="simContentInput" placeholder="Nội dung bình luận..." value="ĐIỂM DANH + HenDy +" style="flex: 1;" />
+                    <button class="btn-sim" onclick="sendCustomSimChat()" style="background: var(--color-accent); font-weight: bold;">Gửi Giả Lập</button>
+                </div>
+
                 <div class="control-group">
-                    <button class="btn-sim" onclick="injectChat('Mod_Master', 'ĐIỂM DANH + HenDy +')">Giả lập Điểm Danh từ Mod</button>
-                    <button class="btn-sim" onclick="injectChat('Vip_Pro', 'HenDy + Xỉu + user123')">Giả lập Kèo Xỉu (Vip)</button>
-                    <button class="btn-sim" onclick="injectChat('User_XYZ', 'Bot ơi điểm danh đi')">Giả lập gọi tên Bot</button>
+                    <button class="btn-sim" onclick="setPresetSim('Mod_Master', 'ĐIỂM DANH + HenDy +')">Giả lập Điểm Danh từ Mod</button>
+                    <button class="btn-sim" onclick="setPresetSim('Vip_Pro', 'HenDy + Xỉu + user123')">Giả lập Kèo Xỉu (Vip)</button>
+                    <button class="btn-sim" onclick="setPresetSim('User_XYZ', 'Bot ơi điểm danh đi')">Giả lập gọi tên Bot</button>
                     <button class="btn-sim" onclick="location.href='/dashboard'" style="background: #2563eb;">Mở Dashboard Quản Lý</button>
                 </div>
 
@@ -323,11 +347,9 @@
 </div>
 
 <script>
-    // Kiểm tra tên miền chính xác (cho phép cả local để test khi dev nếu cần)
     const allowedHostname = "hendy-server-test.up.railway.app";
     const currentHost = window.location.hostname;
 
-    // Nếu bạn muốn cho phép test cả trên localhost thì bật dòng dưới, còn không thì bỏ comment
     if (currentHost === allowedHostname || currentHost === "localhost" || currentHost === "127.0.0.1") {
         document.getElementById('appContainer').style.display = 'grid';
     } else {
@@ -346,6 +368,8 @@
     const muteBtn = document.getElementById('muteBtn');
     const volumeSlider = document.getElementById('volumeSlider');
     const videoSourceSelect = document.getElementById('videoSourceSelect');
+    const simSenderInput = document.getElementById('simSenderInput');
+    const simContentInput = document.getElementById('simContentInput');
 
     let currentIsOnLive = 1;
     let isPanelCollapsed = false;
@@ -375,7 +399,19 @@
         if (e.key === 'Enter') handleUserSubmit();
     });
 
-    window.injectChat = function(sender, text) {
+    // Hàm khi bấm các nút giả lập mẫu sẽ tự điền vào ô input để dễ nhìn/sửa nhanh
+    window.setPresetSim = function(sender, text) {
+        simSenderInput.value = sender;
+        simContentInput.value = text;
+        sendCustomSimChat();
+    };
+
+    // Hàm gửi tin nhắn giả lập lấy trực tiếp từ ô input tùy chỉnh
+    window.sendCustomSimChat = function() {
+        const sender = simSenderInput.value.trim() || "Guest";
+        const text = simContentInput.value.trim();
+        if (!text) return;
+
         let color = sender.includes('Mod') ? '#fbbf24' : (sender.includes('Vip') ? '#ec4899' : '#34d399');
         appendMessage(sender, text, color);
     };
