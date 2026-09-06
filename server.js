@@ -1,239 +1,185 @@
-import logging
-import sqlite3
-import requests
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler, MessageHandler, filters, ContextTypes
+/**
+ * =====================================================================
+ * ⚡ HENDY MASTER CENTRAL SERVER HUB (SYNC 2-WAY V3.8 - ADVANCED)
+ * =====================================================================
+ */
 
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+const WebSocket = require('ws');
+const http = require('http');
 
-# ==========================================
-# ⚙️ CẤU HÌNH HỆ THỐNG
-# ==========================================
-BOT2_TOKEN = "8864632779:AAHX6grIi3yat-Ak7kYTUyJeRDE1ZggJ3eI"
-BOT1_TOKEN = "8689114890:AAFBFM0rNtZWpOtAovIPHPVQTJVp0odU1DQ"
-ADMIN_ID = "6138197737"
+const PORT = process.env.PORT || 3000;
 
-admin_states = {}
+// Tạo HTTP Server phục vụ trang chủ trạng thái & dashboard quản lý tab realtime
+const server = http.createServer((req, res) => {
+    if (req.url === '/api/slaves') {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        let slavesList = [];
+        activeSlaves.forEach((client, id) => {
+            slavesList.push({
+                id: client.id,
+                name: client.name,
+                role: client.role,
+                channel: client.channel,
+                isOnLive: client.isOnLive,
+                url: client.url,
+                lastSeen: new Date(client.lastSeen).toLocaleTimeString('vi-VN')
+            });
+        });
+        res.end(JSON.stringify(slavesList, null, 2));
+        return;
+    }
 
-# ==========================================
-# 🗄️ QUẢN LÝ DATABASE (SQLite)
-# ==========================================
-def get_all_users():
-    conn = sqlite3.connect('system.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name, balance FROM users")
-    rows = cursor.fetchall()
-    conn.close()
-    return rows
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(`
+        <html>
+            <head>
+                <title>HENDY CYBERPUNK SERVER HUB</title>
+                <style>
+                    body { background: #050208; color: #00e5ff; font-family: monospace; text-align: center; padding: 20px; }
+                    h1 { color: #ffcc00; text-shadow: 0 0 10px #ffcc00; }
+                    .box { background: #111827; border: 1px solid #10b981; border-radius: 8px; padding: 15px; margin: 20px auto; width: 80%; text-align: left; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+                    th, td { border: 1px solid #374151; padding: 8px; text-align: left; }
+                    th { color: #10b981; }
+                </style>
+            </head>
+            <body>
+                <h1>🚀 TỔNG ĐÀI HENDY CYBERPUNK [VIP PRO v3.8] 🚀</h1>
+                <h2>Trạng thái: <span style="color: #0f9;">ĐANG HOẠT ĐỘNG ONLINE</span></h2>
+                <div class="box">
+                    <h3>📊 Thống kê mạng lưới Đàn Em</h3>
+                    <p>Tổng số thiết bị kết nối WebSocket: <span id="totalClients" style="color:#ffcc00;">0</span></p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID Slave</th>
+                                <th>Nickname</th>
+                                <th>Kênh / Role</th>
+                                <th>Trạng thái Live</th>
+                                <th>URL hiện tại</th>
+                            </tr>
+                        </thead>
+                        <tbody id="slaveTableBody">
+                            <tr><td colspan="5" style="text-align:center; color:#6b7280;">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="font-size: 11px; color: #555;">Cyberpunk Core Engine v3.8 - Running on Port ${PORT}</div>
 
-def get_user(user_id):
-    conn = sqlite3.connect('system.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name, balance FROM users WHERE id = ?", (user_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return row
+                <script>
+                    async function fetchStatus() {
+                        try {
+                            let res = await fetch('/api/slaves');
+                            let data = await res.json();
+                            document.getElementById('totalClients').innerText = data.length;
+                            let tbody = document.getElementById('slaveTableBody');
+                            if (data.length === 0) {
+                                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#6b7280;">Chưa có Tab nào kết nối.</td></tr>';
+                                return;
+                            }
+                            tbody.innerHTML = data.map(s => \`
+                                <tr>
+                                    <td>\${s.id}</td>
+                                    <td style="color:#00ffcc; font-weight:bold;">\${s.name}</td>
+                                    <td>\${s.channel} (\${s.role})</td>
+                                    <td>\${s.isOnLive ? '<span style="color:#10b981">🟢 Đang Live</span>' : '<span style="color:#ef4444">🔴 Ngoại tuyến</span>'}</td>
+                                    <td style="word-break:break-all; font-size:10px;"><a href="\${s.url}" target="_blank" style="color:#38bdf8;">\${s.url || 'N/A'}</a></td>
+                                </tr>
+                            \`).join('');
+                        } catch(e) {}
+                    }
+                    setInterval(fetchStatus, 3000);
+                    fetchStatus();
+                </script>
+            </body>
+        </html>
+    `);
+});
 
-def update_balance(user_id, amount, is_add=True, is_reset=False):
-    conn = sqlite3.connect('system.db')
-    cursor = conn.cursor()
-    if is_reset:
-        cursor.execute("UPDATE users SET balance = 0 WHERE id = ?", (user_id,))
-    else:
-        if is_add:
-            cursor.execute("UPDATE users SET balance = balance + ? WHERE id = ?", (amount, user_id))
-        else:
-            cursor.execute("UPDATE users SET balance = MAX(0, balance - ?) WHERE id = ?", (amount, user_id))
-    conn.commit()
-    conn.close()
+const wss = new WebSocket.Server({ server });
+let activeSlaves = new Map();
 
-def delete_user(user_id):
-    conn = sqlite3.connect('system.db')
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
-    cursor.execute("DELETE FROM linked_accounts WHERE user_id = ?", (user_id,))
-    conn.commit()
-    conn.close()
+// Thuật toán dọn rác Heartbeat định kỳ
+const interval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (ws.isAlive === false) {
+            return ws.terminate();
+        }
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 30000);
 
-def get_linked_accounts(user_id):
-    conn = sqlite3.connect('system.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT brand, account_name FROM linked_accounts WHERE user_id = ?", (user_id,))
-    rows = cursor.fetchall()
-    conn.close()
-    return rows
+wss.on('connection', (ws, req) => {
+    ws.isAlive = true;
+    ws.on('pong', () => { ws.isAlive = true; });
 
-def notify_user_via_bot1(chat_id, text):
-    url = f"https://api.telegram.org/bot{BOT1_TOKEN}/sendMessage"
-    payload = {"chat_id": chat_id, "text": text, "parse_mode": "Markdown"}
-    try:
-        requests.post(url, json=payload, timeout=5)
-    except Exception as e:
-        print(f"Lỗi gửi thông báo: {e}")
+    let currentSlaveId = null;
 
-# ==========================================
-# 🤖 GIAO DIỆN & XỬ LÝ LOGIC BOT ADMIN
-# ==========================================
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = str(update.effective_user.id)
-    if chat_id != ADMIN_ID:
-        return
+    ws.on('message', (message) => {
+        try {
+            const data = JSON.parse(message);
+            if (!data || !data.action) return;
 
-    welcome_message = "👑 *BẢNG ĐIỀU KHIỂN ADMIN TỐI CAO*\nHệ thống quản lý tích hợp sẵn sàng."
-    
-    # Bổ sung thêm các nút tính năng mới trên Menu chính
-    keyboard = [
-        [InlineKeyboardButton("👥 QUẢN LÝ USER", callback_data="admin_list_users")],
-        [InlineKeyboardButton("🎁 CẬP NHẬT TRÚNG CODE", callback_data="admin_win_code_menu")],
-        [InlineKeyboardButton("📢 GỬI BROADCAST", callback_data="admin_broadcast_prompt"), InlineKeyboardButton("🔗 ĐỔI LINK LIVE", callback_data="admin_changelink_prompt")]
-    ]
-    
-    if chat_id in admin_states:
-        del admin_states[chat_id]
+            switch (data.action) {
+                case 'SYNC_REGISTER_TAB':
+                    currentSlaveId = data.value?.id || ('slave_' + Math.random().toString(36).substring(2, 8));
+                    ws.slaveId = currentSlaveId;
+                    activeSlaves.set(currentSlaveId, {
+                        ws: ws,
+                        id: currentSlaveId,
+                        name: data.value?.name || 'Khách',
+                        role: data.value?.role || 'FOLLOWER',
+                        channel: data.value?.channel || 'KENH-1',
+                        isOnLive: 0,
+                        url: '',
+                        lastSeen: Date.now()
+                    });
+                    console.log(`[REGISTER] Tab đăng ký: ID = ${currentSlaveId}`);
+                    break;
 
-    if update.message:
-        await update.message.reply_text(welcome_message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
-    elif update.callback_query:
-        await update.callback_query.edit_message_text(welcome_message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
+                case 'SYNC_STATUS':
+                    if (data.slaveId && activeSlaves.has(data.slaveId)) {
+                        let slaveInfo = activeSlaves.get(data.slaveId);
+                        slaveInfo.isOnLive = data.is_on_live;
+                        slaveInfo.url = data.url;
+                        slaveInfo.name = data.nickname || slaveInfo.name;
+                        slaveInfo.lastSeen = Date.now();
+                    }
+                    break;
 
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    
-    chat_id = str(query.from_user.id)
-    if chat_id != ADMIN_ID:
-        return
+                case 'PING':
+                    ws.send(JSON.stringify({ action: 'PONG', time: Date.now() }));
+                    break;
 
-    data = query.data
+                default:
+                    if (data.action !== 'SYNC_PING_REQUEST') {
+                        console.log(`[PHÁT LỆNH] Lệnh: ${data.action}`);
+                    }
+                    wss.clients.forEach((client) => {
+                        if (client !== ws && client.readyState === WebSocket.OPEN) {
+                            client.send(message.toString());
+                        }
+                    });
+                    break;
+            }
+        } catch (e) {
+            console.error(`[LỖI DỮ LIỆU]:`, e.message);
+        }
+    });
 
-    if data == "admin_list_users":
-        users = get_all_users()
-        keyboard = []
-        for u in users:
-            uid, name, balance = u
-            keyboard.append([InlineKeyboardButton(f"👤 {name} ({uid}) - {balance:,}đ", callback_data=f"admin_view_{uid}")])
-        keyboard.append([InlineKeyboardButton("◀ Quay lại", callback_data="back_start")])
-        await query.edit_message_text(f"👥 *DANH SÁCH KHÁCH HÀNG ({len(users)})*", reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
+    ws.on('close', () => {
+        if (ws.slaveId && activeSlaves.has(ws.slaveId)) {
+            activeSlaves.delete(ws.slaveId);
+            console.log(`[NGẮT KẾT NỐI] Đã xóa Tab Slave: ${ws.slaveId}`);
+        }
+    });
+});
 
-    elif data.startswith("admin_view_"):
-        target_id = data.replace("admin_view_", "")
-        user = get_user(target_id)
-        if not user:
-            return
-        uid, name, balance = user
-        detail_msg = f"📋 *USER:* {name}\nID: `{uid}`\nVí: `{balance:,} VNĐ`"
-        keyboard = [
-            [InlineKeyboardButton("🎯 Săn Lệnh / Tài Khoản", callback_data=f"admin_sanlenh_{uid}")],
-            [InlineKeyboardButton("➕ Cộng 50k", callback_data=f"admin_add_50000_{uid}"), InlineKeyboardButton("➖ Trừ 50k", callback_data=f"admin_sub_50000_{uid}")],
-            [InlineKeyboardButton("🔄 Reset 0đ", callback_data=f"admin_reset_{uid}"), InlineKeyboardButton("🗑️ Xóa", callback_data=f"admin_delete_{uid}")],
-            [InlineKeyboardButton("◀ Danh sách User", callback_data="admin_list_users")]
-        ]
-        await query.edit_message_text(detail_msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
+wss.on('close', () => {
+    clearInterval(interval);
+});
 
-    elif data.startswith("admin_sanlenh_"):
-        target_id = data.replace("admin_sanlenh_", "")
-        user = get_user(target_id)
-        linked = get_linked_accounts(target_id)
-        msg = f"🎯 *KHO TÀI KHOẢN LIÊN KẾT ({user[1]}):*\n"
-        if not linked:
-            msg += "⚠️ Chưa liên kết tài khoản nào."
-        else:
-            brands = {}
-            for brand, acc in linked:
-                brands.setdefault(brand, []).append(acc)
-            for b, accs in brands.items():
-                msg += f"• *{b}*: `{('`, `'.join(accs))}`\n"
-        keyboard = [[InlineKeyboardButton("◀ Quay lại", callback_data=f"admin_view_{target_id}")]]
-        await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
-
-    elif data.startswith(("admin_add_", "admin_sub_", "admin_reset_", "admin_delete_")):
-        parts = data.split('_')
-        action = parts[1]
-        if action == "delete":
-            delete_user(parts[2])
-            await query.edit_message_text("🗑️ Đã xóa user thành công.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀ Danh sách", callback_data="admin_list_users")]]))
-        elif action == "reset":
-            update_balance(parts[2], 0, is_reset=True)
-            notify_user_via_bot1(parts[2], "⚠️ Số dư ví đã được Admin reset về `0 VNĐ`.")
-            await query.edit_message_text("🔄 Đã reset ví về 0đ.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀ Quay lại", callback_data=f"admin_view_{parts[2]}")]]))
-        elif action in ["add", "sub"]:
-            amount, target_id = int(parts[2]), parts[3]
-            is_add = (action == "add")
-            update_balance(target_id, amount, is_add=is_add)
-            new_bal = get_user(target_id)[2]
-            msg_notify = f"🎉 Được cộng `{amount:,} VNĐ`." if is_add else f"⚠️ Bị trừ `{amount:,} VNĐ`."
-            notify_user_via_bot1(target_id, f"{msg_notify}\nVí mới: `{new_bal:,} VNĐ`")
-            await query.edit_message_text(f"✅ Đã cập nhật. Ví mới: `{new_bal:,} VNĐ`", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀ Quay lại", callback_data=f"admin_view_{target_id}")]]))
-
-    elif data == "admin_win_code_menu":
-        admin_states[chat_id] = "waiting_wincode"
-        await query.edit_message_text("🎁 Gửi danh sách theo định dạng: `TàiKhoản|MãCode` (mỗi dòng 1 acc).", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀ Quay lại", callback_data="back_start")]]))
-
-    elif data == "admin_broadcast_prompt":
-        admin_states[chat_id] = "waiting_broadcast"
-        await query.edit_message_text("📢 Sếp hãy nhập nội dung thông báo muốn gửi đến toàn bộ người dùng:", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀ Quay lại", callback_data="back_start")]]))
-
-    elif data == "admin_changelink_prompt":
-        admin_states[chat_id] = "waiting_changelink"
-        await query.edit_message_text("🔗 Sếp hãy nhập Link Live mới để gửi lệnh cập nhật:", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("◀ Quay lại", callback_data="back_start")]]))
-
-    elif data == "back_start":
-        await start(update, context)
-
-async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = str(update.effective_user.id)
-    if chat_id != ADMIN_ID or chat_id not in admin_states:
-        return
-    
-    current_state = admin_states[chat_id]
-
-    if current_state == "waiting_wincode":
-        lines = update.message.text.strip().split('\n')
-        conn = sqlite3.connect('system.db')
-        cursor = conn.cursor()
-        cursor.execute("SELECT user_id, account_name FROM linked_accounts")
-        all_linked = cursor.fetchall()
-        conn.close()
-
-        success, not_found = 0, 0
-        for line in lines:
-            parts = [p.strip() for p in line.split('|')]
-            target_acc = parts[0]
-            code = parts[1] if len(parts) > 1 else "CODE_VIP"
-            if not target_acc:
-                continue
-            found_uid = next((uid for uid, acc in all_linked if acc.lower() == target_acc.lower()), None)
-            if found_uid:
-                notify_user_via_bot1(found_uid, f"🎉 *TRÚNG CODE!*\nTK: `{target_acc}`\nCode: `{code}`")
-                success += 1
-            else:
-                not_found += 1
-        del admin_states[chat_id]
-        await update.message.reply_text(f"✅ Xong!\nGửi thành công: {success}\nKhông tìm thấy: {not_found}")
-
-    elif current_state == "waiting_broadcast":
-        msg_text = update.message.text.strip()
-        users = get_all_users()
-        count = 0
-        for u in users:
-            uid = u[0]
-            notify_user_via_bot1(uid, f"📢 *THÔNG BÁO HỆ THỐNG*\n\n{msg_text}")
-            count += 1
-        del admin_states[chat_id]
-        await update.message.reply_text(f"✅ Đã gửi thông báo Broadcast thành công đến {count} khách hàng!")
-
-    elif current_state == "waiting_changelink":
-        new_link = update.message.text.strip()
-        del admin_states[chat_id]
-        # Xử lý bắn lệnh đổi link hoặc lưu trữ tùy biến hệ thống sếp
-        await update.message.reply_text(f"✅ Đã nhận Link Live mới:\n`{new_link}`\n(Hệ thống đã ghi nhận lệnh đổi link)", parse_mode="Markdown")
-
-def main():
-    app = ApplicationBuilder().token(BOT2_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(button_handler))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
-    app.run_polling()
-
-if __name__ == "__main__":
-    main()
+server.listen(PORT, () => {
+    console.log(`[HENDY SERVER HUB] Đang chạy tại cổng: ${PORT}`);
+});
