@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>SC88 Live Stream - Test Environment</title>
+    <title>HenDy Live Stream - Test Environment</title>
     <style>
         :root {
             --color-bg: #0f172a;
@@ -261,9 +261,9 @@
             
             <div class="panel-body" style="margin-top: 10px;">
                 <div class="control-group">
-                    <button class="btn-sim" onclick="injectChat('Mod_Master', 'ĐIỂM DANH + SC88 +')">Giả lập Điểm Danh từ Mod</button>
-                    <button class="btn-sim" onclick="injectChat('Vip_Pro', 'SC88 + Xỉu + user123')">Giả lập Kèo Xỉu (Vip)</button>
-                    <button class="btn-sim" onclick="injectChat('User_XYZ', 'yu45m ơi điểm danh đi')">Giả lập gọi tên Bot</button>
+                    <button class="btn-sim" onclick="injectChat('Mod_Master', 'ĐIỂM DANH + HenDy +')">Giả lập Điểm Danh từ Mod</button>
+                    <button class="btn-sim" onclick="injectChat('Vip_Pro', 'HenDy + Xỉu + user123')">Giả lập Kèo Xỉu (Vip)</button>
+                    <button class="btn-sim" onclick="injectChat('User_XYZ', 'Bot ơi điểm danh đi')">Giả lập gọi tên Bot</button>
                     <button class="btn-sim" onclick="location.href='/dashboard'" style="background: #2563eb;">Mở Dashboard Quản Lý</button>
                 </div>
 
@@ -303,7 +303,7 @@
     </div>
 
     <div class="chat-section">
-        <div class="chat-header">💬 Khung Trò Chuyện Trực Tuyến (SC88 Mock)</div>
+        <div class="chat-header">💬 Khung Trò Chuyện Trực Tuyến (HenDy Mock)</div>
         <div class="chat-messages" id="chatMessages">
             <div><span style="color: #64748b;">[System]</span> Chào mừng bạn đến phòng test tool Tampermonkey.</div>
         </div>
@@ -333,6 +333,12 @@
     let currentIsOnLive = 1;
     let isPanelCollapsed = false;
 
+    // Lấy tên Bot (Nickname) từ phần mở rộng hoặc giá trị mặc định nếu chưa có
+    function getBotNickname() {
+        // Có thể thay đổi logic đọc DOM ở đây nếu trang có phần tử chứa tên bot thực tế
+        return "Khách_474 (Bot)"; 
+    }
+
     function appendMessage(sender, text, color = "#f8fafc") {
         const div = document.createElement('div');
         div.innerHTML = `<span style="color: #64748b;">[${new Date().toLocaleTimeString()}]</span> <b style="color: ${color};">${sender}:</b> ${text}`;
@@ -343,7 +349,8 @@
     function handleUserSubmit() {
         const val = chatInput.value.trim();
         if (!val) return;
-        appendMessage("yu45m (Bot)", val, "#38bdf8");
+        const botName = getBotNickname();
+        appendMessage(botName, val, "#38bdf8");
         chatInput.value = '';
         chatInput.dispatchEvent(new Event('input', { bubbles: true }));
     }
@@ -369,13 +376,12 @@
 
     // Khởi động: Kiểm tra xem có lưu video trước đó không
     window.addEventListener('DOMContentLoaded', () => {
-        const savedVideoUrl = localStorage.getItem('sc88_saved_video_url');
+        const savedVideoUrl = localStorage.getItem('hendy_saved_video_url');
         if (savedVideoUrl) {
             liveVideo.src = savedVideoUrl;
             liveVideo.load();
             liveVideo.play().catch(e => {});
             
-            // Cập nhật giá trị hiển thị trên select nếu trùng khớp
             let matchFound = false;
             for (let option of videoSourceSelect.options) {
                 if (option.value === savedVideoUrl) {
@@ -385,7 +391,6 @@
                 }
             }
             if (!matchFound) {
-                // Nếu là URL custom được lưu từ trước, hiển thị thông báo
                 appendMessage("System", "Đã tự động tải lại video tùy chỉnh từ lần trước.", "#fbbf24");
             }
         }
@@ -419,7 +424,7 @@
         if (input.files && input.files[0]) {
             const file = input.files[0];
             const fileURL = URL.createObjectURL(file);
-            setVideoSource(fileURL, false); // File từ máy tính không lưu localStorage vì đường dẫn tạm blob:
+            setVideoSource(fileURL, false);
             appendMessage("System", `Đã tải lên video từ máy: ${file.name}`, "#38bdf8");
         }
     };
@@ -430,7 +435,7 @@
         liveVideo.play().catch(e => {});
         
         if (saveToStorage && !url.startsWith('blob:')) {
-            localStorage.setItem('sc88_saved_video_url', url);
+            localStorage.setItem('hendy_saved_video_url', url);
         }
         appendMessage("System", "Đã cập nhật và lưu nguồn video cho lần sau.", "#fbbf24");
     }
