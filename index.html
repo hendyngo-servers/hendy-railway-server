@@ -230,7 +230,7 @@
 </head>
 <body>
 
-<div class="main-layout">
+<div class="main-layout" id="appContainer" style="display: none;">
     <div class="stream-section">
         <div class="live-screen" id="liveScreen">
             <div id="liveBadge" class="live-badge">ĐANG PHÁT TRỰC TIẾP</div>
@@ -316,7 +316,24 @@
     </div>
 </div>
 
+<!-- Thông báo nếu truy cập sai tên miền -->
+<div id="unauthorizedMsg" style="display: none; text-align: center; margin-top: 150px; color: #ef4444; font-family: sans-serif;">
+    <h2>403 - Truy cập bị từ chối</h2>
+    <p style="color: #94a3b8;">Trang này chỉ hiển thị khi truy cập qua đường dẫn chính thức.</p>
+</div>
+
 <script>
+    // Kiểm tra tên miền chính xác (cho phép cả local để test khi dev nếu cần)
+    const allowedHostname = "hendy-server-test.up.railway.app";
+    const currentHost = window.location.hostname;
+
+    // Nếu bạn muốn cho phép test cả trên localhost thì bật dòng dưới, còn không thì bỏ comment
+    if (currentHost === allowedHostname || currentHost === "localhost" || currentHost === "127.0.0.1") {
+        document.getElementById('appContainer').style.display = 'grid';
+    } else {
+        document.getElementById('unauthorizedMsg').style.display = 'block';
+    }
+
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     const chatMessages = document.getElementById('chatMessages');
@@ -333,9 +350,7 @@
     let currentIsOnLive = 1;
     let isPanelCollapsed = false;
 
-    // Lấy tên Bot (Nickname) từ phần mở rộng hoặc giá trị mặc định nếu chưa có
     function getBotNickname() {
-        // Có thể thay đổi logic đọc DOM ở đây nếu trang có phần tử chứa tên bot thực tế
         return "Khách_474 (Bot)"; 
     }
 
@@ -365,7 +380,6 @@
         appendMessage(sender, text, color);
     };
 
-    // Tự động canh khung hình theo tỉ lệ chuẩn của video gốc
     liveVideo.addEventListener('loadedmetadata', function() {
         const videoWidth = liveVideo.videoWidth;
         const videoHeight = liveVideo.videoHeight;
@@ -374,7 +388,6 @@
         }
     });
 
-    // Khởi động: Kiểm tra xem có lưu video trước đó không
     window.addEventListener('DOMContentLoaded', () => {
         const savedVideoUrl = localStorage.getItem('hendy_saved_video_url');
         if (savedVideoUrl) {
@@ -396,7 +409,6 @@
         }
     });
 
-    // 1. Thu gọn / Mở rộng bảng điều khiển
     window.togglePanelCollapse = function() {
         isPanelCollapsed = !isPanelCollapsed;
         if (isPanelCollapsed) {
@@ -408,7 +420,6 @@
         }
     };
 
-    // 2. Thay đổi nguồn video và lưu lại vào localStorage
     window.handleVideoPresetChange = function(url) {
         if (url === 'custom_url') {
             const customUrl = prompt("Nhập đường dẫn URL video (.mp4, .webm...):");
@@ -440,7 +451,6 @@
         appendMessage("System", "Đã cập nhật và lưu nguồn video cho lần sau.", "#fbbf24");
     }
 
-    // 3. Tùy chỉnh hiệu ứng & Khung hình
     window.setVideoFilter = function(filterStyle) {
         liveVideo.style.filter = filterStyle;
         appendMessage("System", `Đã chuyển hiệu ứng video sang: ${filterStyle}`, "#38bdf8");
@@ -451,7 +461,6 @@
         appendMessage("System", `Đã đổi khung hiển thị video sang: ${mode}`, "#38bdf8");
     };
 
-    // 4. Nút Play/Pause & Âm lượng
     window.togglePlayPause = function() {
         if (liveVideo.paused) {
             liveVideo.play();
@@ -501,7 +510,6 @@
         sendSyncStatus();
     };
 
-    // Kết nối WebSocket tự động tới Server Hub
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const ws = new WebSocket(`${protocol}//${location.host}`);
     let mySlaveId = 'tab_' + Math.random().toString(36).substring(2, 6);
