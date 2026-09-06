@@ -1,13 +1,12 @@
 {
-  "name": "hendy-bot",
-  "version": "1.0.0",
-  "description": "Hendy Bot Telegram",
-  "main": "index.js",
+  "name": "hendy-railway-server",
+  "version": "3.8.0",
+  "description": "Hendy Master Central Server Hub",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "dependencies": {
-    "node-telegram-bot-api": "^0.66.0",
     "ws": "^8.16.0"
   }
 }
