@@ -31,17 +31,22 @@
         }
         .live-screen {
             background: #000;
+            width: 100%;
+            max-height: 70vh;
             aspect-ratio: 16/9;
             border-radius: 8px;
             position: relative;
             border: 1px solid var(--color-border);
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .live-screen video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             transition: filter 0.3s ease;
         }
         .live-badge {
@@ -56,6 +61,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            z-index: 10;
         }
         .live-badge.offline {
             background: rgba(100, 116, 139, 0.85);
@@ -76,6 +82,35 @@
             0% { transform: scale(0.95); opacity: 0.8; }
             50% { transform: scale(1.2); opacity: 1; }
             100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .video-controls-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(5px);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            border-top: 1px solid var(--color-border);
+            z-index: 10;
+        }
+        .video-controls-bar button, .video-controls-bar select {
+            background: #334155;
+            border: none;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .video-controls-bar button:hover { background: #475569; }
+        .video-controls-bar input[type="range"] {
+            width: 80px;
+            cursor: pointer;
         }
         .chat-section {
             background: var(--color-panel);
@@ -147,6 +182,19 @@
             padding: 12px;
             border-radius: 8px;
             margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        .control-panel-dev.collapsed .panel-body {
+            display: none;
+        }
+        .panel-header-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 12px;
+            color: #fbbf24;
+            cursor: pointer;
         }
         .btn-sim {
             background: #334155;
@@ -167,53 +215,89 @@
             color: #94a3b8;
             margin-right: 6px;
         }
+        .custom-file-upload {
+            border: 1px dashed #475569;
+            display: inline-block;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            background: #0f172a;
+            font-size: 11px;
+            color: #38bdf8;
+        }
+        .custom-file-upload:hover { background: #1e293b; }
     </style>
 </head>
 <body>
 
 <div class="main-layout">
     <div class="stream-section">
-        <div class="live-screen">
+        <div class="live-screen" id="liveScreen">
             <div id="liveBadge" class="live-badge">ĐANG PHÁT TRỰC TIẾP</div>
             <video id="liveVideo" autoplay muted loop>
                 <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
             </video>
-        </div>
 
-        <div class="control-panel-dev">
-            <div style="font-weight: bold; margin-bottom: 8px; font-size: 12px; color: #fbbf24;">⚙️ Bảng Điều Khiển Giả Lập Tín Hiệu & Hiệu Ứng Phòng Live:</div>
-            
-            <div class="control-group">
-                <button class="btn-sim" onclick="injectChat('Mod_Master', 'ĐIỂM DANH + SC88 +')">Giả lập Điểm Danh từ Mod</button>
-                <button class="btn-sim" onclick="injectChat('Vip_Pro', 'SC88 + Xỉu + user123')">Giả lập Kèo Xỉu (Vip)</button>
-                <button class="btn-sim" onclick="injectChat('User_XYZ', 'yu45m ơi điểm danh đi')">Giả lập gọi tên Bot</button>
-                <button class="btn-sim" onclick="location.href='/dashboard'" style="background: #2563eb;">Mở Dashboard Quản Lý</button>
-            </div>
-
-            <hr style="border-color: #334155; margin: 8px 0;">
-
-            <div class="control-group">
-                <label>🎞️ Chọn Video:</label>
-                <select id="videoSourceSelect" onchange="changeVideoSource(this.value)" style="background:#0f172a; color:#fff; border:1px solid #334155; padding:4px; border-radius:4px; font-size:11px;">
-                    <option value="https://www.w3schools.com/html/mov_bbb.mp4">Big Buck Bunny (Mặc định)</option>
-                    <option value="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm">Flower (MDN Test)</option>
-                    <option value="https://www.w3schools.com/html/movie.mp4">Bear Movie</option>
+            <!-- Thanh điều khiển âm lượng, phát/tạm dừng và tỉ lệ khung hình -->
+            <div class="video-controls-bar">
+                <button id="playPauseBtn" onclick="togglePlayPause()">⏸️ Tạm dừng</button>
+                <button id="muteBtn" onclick="toggleMute()">🔇 Bật tiếng</button>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0" oninput="changeVolume(this.value)">
+                <div style="flex:1"></div>
+                <span style="font-size:11px; color:#94a3b8;">Khung hình:</span>
+                <select id="fitModeSelect" onchange="changeFitMode(this.value)">
+                    <option value="contain">Vừa khít (Contain)</option>
+                    <option value="cover">Tràn khung (Cover)</option>
+                    <option value="fill">Kéo giãn (Fill)</option>
                 </select>
             </div>
+        </div>
 
-            <div class="control-group">
-                <label>🎨 Hiệu ứng màu:</label>
-                <button class="btn-sim" onclick="setVideoFilter('none')">Bình thường</button>
-                <button class="btn-sim" onclick="setVideoFilter('grayscale(100%)')">Đen Trắng</button>
-                <button class="btn-sim" onclick="setVideoFilter('sepia(100%)')">Cổ Điển</button>
-                <button class="btn-sim" onclick="setVideoFilter('hue-rotate(90deg)')">Neon Xanh</button>
-                <button class="btn-sim" onclick="setVideoFilter('invert(100%)')">Đảo Ngược</button>
+        <div class="control-panel-dev" id="controlPanel">
+            <div class="panel-header-title" onclick="togglePanelCollapse()">
+                <span>⚙️ Bảng Điều Khiển Giả Lập Tín Hiệu & Hiệu Ứng Phòng Live</span>
+                <span id="toggleIcon" style="background:#334155; padding:2px 8px; border-radius:4px; font-size:10px;">[Ẩn]</span>
             </div>
+            
+            <div class="panel-body" style="margin-top: 10px;">
+                <div class="control-group">
+                    <button class="btn-sim" onclick="injectChat('Mod_Master', 'ĐIỂM DANH + SC88 +')">Giả lập Điểm Danh từ Mod</button>
+                    <button class="btn-sim" onclick="injectChat('Vip_Pro', 'SC88 + Xỉu + user123')">Giả lập Kèo Xỉu (Vip)</button>
+                    <button class="btn-sim" onclick="injectChat('User_XYZ', 'yu45m ơi điểm danh đi')">Giả lập gọi tên Bot</button>
+                    <button class="btn-sim" onclick="location.href='/dashboard'" style="background: #2563eb;">Mở Dashboard Quản Lý</button>
+                </div>
 
-            <div class="control-group">
-                <label>⚡ Trạng thái Live:</label>
-                <button class="btn-sim" onclick="toggleLiveStatus(true)" style="background:#059669;">Bật Live (Online)</button>
-                <button class="btn-sim" onclick="toggleLiveStatus(false)" style="background:#dc2626;">Tắt Live (Offline)</button>
+                <hr style="border-color: #334155; margin: 8px 0;">
+
+                <div class="control-group" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <label>🎞️ Chọn Video:</label>
+                    <select id="videoSourceSelect" onchange="handleVideoPresetChange(this.value)" style="background:#0f172a; color:#fff; border:1px solid #334155; padding:4px; border-radius:4px; font-size:11px;">
+                        <option value="https://www.w3schools.com/html/mov_bbb.mp4">Big Buck Bunny (Mặc định)</option>
+                        <option value="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm">Flower (MDN Test)</option>
+                        <option value="https://www.w3schools.com/html/movie.mp4">Bear Movie</option>
+                        <option value="custom_url">🔗 Nhập URL bên ngoài...</option>
+                    </select>
+
+                    <label class="custom-file-upload">
+                        📁 Tải video từ máy
+                        <input type="file" id="localVideoUpload" accept="video/*" style="display: none;" onchange="handleLocalVideoUpload(this)" />
+                    </label>
+                </div>
+
+                <div class="control-group">
+                    <label>🎨 Hiệu ứng màu:</label>
+                    <button class="btn-sim" onclick="setVideoFilter('none')">Bình thường</button>
+                    <button class="btn-sim" onclick="setVideoFilter('grayscale(100%)')">Đen Trắng</button>
+                    <button class="btn-sim" onclick="setVideoFilter('sepia(100%)')">Cổ Điển</button>
+                    <button class="btn-sim" onclick="setVideoFilter('hue-rotate(90deg)')">Neon Xanh</button>
+                    <button class="btn-sim" onclick="setVideoFilter('invert(100%)')">Đảo Ngược</button>
+                </div>
+
+                <div class="control-group">
+                    <label>⚡ Trạng thái Live:</label>
+                    <button class="btn-sim" onclick="toggleLiveStatus(true)" style="background:#059669;">Bật Live (Online)</button>
+                    <button class="btn-sim" onclick="toggleLiveStatus(false)" style="background:#dc2626;">Tắt Live (Offline)</button>
+                </div>
             </div>
         </div>
     </div>
@@ -237,9 +321,17 @@
     const sendBtn = document.getElementById('sendBtn');
     const chatMessages = document.getElementById('chatMessages');
     const liveVideo = document.getElementById('liveVideo');
+    const liveScreen = document.getElementById('liveScreen');
     const liveBadge = document.getElementById('liveBadge');
+    const controlPanel = document.getElementById('controlPanel');
+    const toggleIcon = document.getElementById('toggleIcon');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const videoSourceSelect = document.getElementById('videoSourceSelect');
 
     let currentIsOnLive = 1;
+    let isPanelCollapsed = false;
 
     function appendMessage(sender, text, color = "#f8fafc") {
         const div = document.createElement('div');
@@ -266,17 +358,126 @@
         appendMessage(sender, text, color);
     };
 
-    // Các hàm tùy chỉnh mới
-    window.changeVideoSource = function(url) {
+    // Tự động canh khung hình theo tỉ lệ chuẩn của video gốc
+    liveVideo.addEventListener('loadedmetadata', function() {
+        const videoWidth = liveVideo.videoWidth;
+        const videoHeight = liveVideo.videoHeight;
+        if (videoWidth && videoHeight) {
+            liveScreen.style.aspectRatio = `${videoWidth} / ${videoHeight}`;
+        }
+    });
+
+    // Khởi động: Kiểm tra xem có lưu video trước đó không
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedVideoUrl = localStorage.getItem('sc88_saved_video_url');
+        if (savedVideoUrl) {
+            liveVideo.src = savedVideoUrl;
+            liveVideo.load();
+            liveVideo.play().catch(e => {});
+            
+            // Cập nhật giá trị hiển thị trên select nếu trùng khớp
+            let matchFound = false;
+            for (let option of videoSourceSelect.options) {
+                if (option.value === savedVideoUrl) {
+                    videoSourceSelect.value = savedVideoUrl;
+                    matchFound = true;
+                    break;
+                }
+            }
+            if (!matchFound) {
+                // Nếu là URL custom được lưu từ trước, hiển thị thông báo
+                appendMessage("System", "Đã tự động tải lại video tùy chỉnh từ lần trước.", "#fbbf24");
+            }
+        }
+    });
+
+    // 1. Thu gọn / Mở rộng bảng điều khiển
+    window.togglePanelCollapse = function() {
+        isPanelCollapsed = !isPanelCollapsed;
+        if (isPanelCollapsed) {
+            controlPanel.classList.add('collapsed');
+            toggleIcon.innerText = '[Hiện]';
+        } else {
+            controlPanel.classList.remove('collapsed');
+            toggleIcon.innerText = '[Ẩn]';
+        }
+    };
+
+    // 2. Thay đổi nguồn video và lưu lại vào localStorage
+    window.handleVideoPresetChange = function(url) {
+        if (url === 'custom_url') {
+            const customUrl = prompt("Nhập đường dẫn URL video (.mp4, .webm...):");
+            if (customUrl) {
+                setVideoSource(customUrl, true);
+            }
+            return;
+        }
+        setVideoSource(url, true);
+    };
+
+    window.handleLocalVideoUpload = function(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const fileURL = URL.createObjectURL(file);
+            setVideoSource(fileURL, false); // File từ máy tính không lưu localStorage vì đường dẫn tạm blob:
+            appendMessage("System", `Đã tải lên video từ máy: ${file.name}`, "#38bdf8");
+        }
+    };
+
+    function setVideoSource(url, saveToStorage = true) {
         liveVideo.src = url;
         liveVideo.load();
         liveVideo.play().catch(e => {});
-        appendMessage("System", "Đã thay đổi nguồn video mới.", "#fbbf24");
-    };
+        
+        if (saveToStorage && !url.startsWith('blob:')) {
+            localStorage.setItem('sc88_saved_video_url', url);
+        }
+        appendMessage("System", "Đã cập nhật và lưu nguồn video cho lần sau.", "#fbbf24");
+    }
 
+    // 3. Tùy chỉnh hiệu ứng & Khung hình
     window.setVideoFilter = function(filterStyle) {
         liveVideo.style.filter = filterStyle;
         appendMessage("System", `Đã chuyển hiệu ứng video sang: ${filterStyle}`, "#38bdf8");
+    };
+
+    window.changeFitMode = function(mode) {
+        liveVideo.style.objectFit = mode;
+        appendMessage("System", `Đã đổi khung hiển thị video sang: ${mode}`, "#38bdf8");
+    };
+
+    // 4. Nút Play/Pause & Âm lượng
+    window.togglePlayPause = function() {
+        if (liveVideo.paused) {
+            liveVideo.play();
+            playPauseBtn.innerText = "⏸️ Tạm dừng";
+        } else {
+            liveVideo.pause();
+            playPauseBtn.innerText = "▶️ Tiếp tục";
+        }
+    };
+
+    window.toggleMute = function() {
+        liveVideo.muted = !liveVideo.muted;
+        if (liveVideo.muted) {
+            muteBtn.innerText = "🔇 Bật tiếng";
+            volumeSlider.value = 0;
+        } else {
+            muteBtn.innerText = "🔊 Tắt tiếng";
+            volumeSlider.value = liveVideo.volume || 0.5;
+            liveVideo.volume = liveVideo.volume || 0.5;
+        }
+    };
+
+    window.changeVolume = function(val) {
+        liveVideo.volume = parseFloat(val);
+        if (val > 0) {
+            liveVideo.muted = false;
+            muteBtn.innerText = "🔊 Tắt tiếng";
+        } else {
+            liveVideo.muted = true;
+            muteBtn.innerText = "🔇 Bật tiếng";
+        }
     };
 
     window.toggleLiveStatus = function(status) {
@@ -321,7 +522,6 @@
         }
     }
 
-    // Gửi heartbeat trạng thái định kỳ mỗi 5 giây
     setInterval(sendSyncStatus, 5000);
 
     ws.onmessage = (event) => {
