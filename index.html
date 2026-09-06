@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>SC88 Live Stream - Test Environment</title>
+    <style>
+        :root {
+            --color-bg: #0f172a;
+            --color-panel: #1e293b;
+            --color-border: #334155;
+            --color-accent: #10b981;
+        }
+        body {
+            background-color: var(--color-bg);
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 15px;
+        }
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .stream-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .live-screen {
+            background: #000;
+            aspect-ratio: 16/9;
+            border-radius: 8px;
+            position: relative;
+            border: 1px solid var(--color-border);
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .live-screen video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .live-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(220, 38, 38, 0.85);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .live-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .chat-section {
+            background: var(--color-panel);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+            padding: 12px;
+        }
+        .chat-header {
+            font-weight: bold;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            color: var(--color-accent);
+            font-size: 13px;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            background: #0f172a;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .chat-input-area {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .input-wrapper {
+            display: flex;
+            gap: 6px;
+        }
+        input[placeholder*="bình luận"] {
+            flex: 1;
+            background: #0f172a;
+            border: 1px solid var(--color-border);
+            color: #fff;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+        }
+        input[placeholder*="bình luận"]:focus {
+            border-color: var(--color-accent);
+        }
+        button.send-btn {
+            background: var(--color-accent);
+            border: none;
+            color: white;
+            padding: 0 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        button.send-btn:hover { background: #059669; }
+        .control-panel-dev {
+            background: var(--color-panel);
+            border: 1px solid var(--color-border);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .btn-sim {
+            background: #334155;
+            border: none;
+            color: #f8fafc;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            margin: 3px;
+        }
+        .btn-sim:hover { background: #475569; }
+        .nav-links {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .nav-links a {
+            color: #38bdf8;
+            font-size: 12px;
+            text-decoration: none;
+        }
+        .nav-links a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="main-layout">
+    <div class="stream-section">
+        <div class="live-screen">
+            <div class="live-badge">ĐANG PHÁT TRỰC TIẾP</div>
+            <video id="liveVideo" autoplay muted loop>
+                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            </video>
+        </div>
+
+        <div class="control-panel-dev">
+            <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px; color: #fbbf24;">⚙️ Bảng Điều Khiển Giả Lập Tín Hiệu Phòng Live:</div>
+            <button class="btn-sim" onclick="injectChat('Mod_Master', 'ĐIỂM DANH + SC88 +')">Giả lập Điểm Danh từ Mod</button>
+            <button class="btn-sim" onclick="injectChat('Vip_Pro', 'SC88 + Xỉu + user123')">Giả lập Kèo Xỉu (Vip)</button>
+            <button class="btn-sim" onclick="injectChat('User_XYZ', 'yu45m ơi điểm danh đi')">Giả lập gọi tên Bot</button>
+            <div class="nav-links">
+                <a href="/dashboard" target="_blank">📊 Mở Dashboard Quản Lý Slaves</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-section">
+        <div class="chat-header">💬 Khung Trò Chuyện Trực Tuyến (SC88 Mock)</div>
+        <div class="chat-messages" id="chatMessages">
+            <div><span style="color: #64748b;">[System]</span> Chào mừng bạn đến phòng test tool Tampermonkey.</div>
+        </div>
+        <div class="chat-input-area">
+            <div class="input-wrapper">
+                <input type="text" id="chatInput" placeholder="Nhập nội dung bình luận..." />
+                <button class="send-btn" id="sendBtn">Gửi</button>
+            </div>
+            <button class="send-btn" style="background:#dc2626; width:100%; margin-top:4px;" onclick="document.querySelector('button[class*=\'claim\']')?.click()">Nút Nhận Thưởng Giả Lập</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatMessages = document.getElementById('chatMessages');
+
+    function appendMessage(sender, text, color = "#f8fafc") {
+        const div = document.createElement('div');
+        div.innerHTML = `<span style="color: #64748b;">[${new Date().toLocaleTimeString()}]</span> <b style="color: ${color};">${sender}:</b> ${text}`;
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function handleUserSubmit() {
+        const val = chatInput.value.trim();
+        if (!val) return;
+        appendMessage("yu45m (Bot)", val, "#38bdf8");
+        
+        // Gửi nội dung chat lên WebSocket server để sync
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ action: 'CHAT_SENT', message: val }));
+        }
+
+        chatInput.value = '';
+        chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    sendBtn.addEventListener('click', handleUserSubmit);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleUserSubmit();
+    });
+
+    window.injectChat = function(sender, text) {
+        let color = sender.includes('Mod') ? '#fbbf24' : (sender.includes('Vip') ? '#ec4899' : '#34d399');
+        appendMessage(sender, text, color);
+    };
+
+    // Kết nối WebSocket tự động tới Server Hub hiện tại
+    const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${wsProtocol}//${location.host}`);
+
+    ws.onopen = () => {
+        // Đăng ký thông tin Slave tự động khi kết nối trang
+        ws.send(JSON.stringify({
+            action: 'SYNC_REGISTER_TAB',
+            value: {
+                id: 'slave_' + Math.random().toString(36).substring(2, 8),
+                name: 'Tab-Mock-Live',
+                role: 'TESTER',
+                channel: 'SC88-LIVE'
+            }
+        }));
+
+        // Gửi heartbeat trạng thái live định kỳ
+        setInterval(() => {
+            ws.send(JSON.stringify({
+                action: 'SYNC_STATUS',
+                slaveId: ws.slaveId || 'unknown',
+                is_on_live: 1,
+                url: window.location.href,
+                nickname: 'yu45m'
+            }));
+        }, 5000);
+    };
+
+    ws.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            if (data.action && data.action.startsWith('CHAT|')) {
+                const msg = data.action.split('|')[1];
+                chatInput.value = msg;
+                handleUserSubmit();
+            }
+        } catch(e) {}
+    };
+</script>
+
+</body>
+</html>
