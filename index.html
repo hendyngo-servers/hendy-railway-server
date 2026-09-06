@@ -42,6 +42,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: filter 0.3s ease;
         }
         .live-badge {
             position: absolute;
@@ -56,6 +57,9 @@
             align-items: center;
             gap: 6px;
         }
+        .live-badge.offline {
+            background: rgba(100, 116, 139, 0.85);
+        }
         .live-badge::before {
             content: '';
             width: 8px;
@@ -63,6 +67,10 @@
             background: #fff;
             border-radius: 50%;
             animation: pulse 1.5s infinite;
+        }
+        .live-badge.offline::before {
+            animation: none;
+            background: #cbd5e1;
         }
         @keyframes pulse {
             0% { transform: scale(0.95); opacity: 0.8; }
@@ -151,6 +159,14 @@
             margin: 3px;
         }
         .btn-sim:hover { background: #475569; }
+        .control-group {
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .control-group label {
+            color: #94a3b8;
+            margin-right: 6px;
+        }
     </style>
 </head>
 <body>
@@ -158,18 +174,47 @@
 <div class="main-layout">
     <div class="stream-section">
         <div class="live-screen">
-            <div class="live-badge">ĐANG PHÁT TRỰC TIẾP</div>
+            <div id="liveBadge" class="live-badge">ĐANG PHÁT TRỰC TIẾP</div>
             <video id="liveVideo" autoplay muted loop>
                 <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
             </video>
         </div>
 
         <div class="control-panel-dev">
-            <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px; color: #fbbf24;">⚙️ Bảng Điều Khiển Giả Lập Tín Hiệu Phòng Live:</div>
-            <button class="btn-sim" onclick="injectChat('Mod_Master', 'ĐIỂM DANH + SC88 +')">Giả lập Điểm Danh từ Mod</button>
-            <button class="btn-sim" onclick="injectChat('Vip_Pro', 'SC88 + Xỉu + user123')">Giả lập Kèo Xỉu (Vip)</button>
-            <button class="btn-sim" onclick="injectChat('User_XYZ', 'yu45m ơi điểm danh đi')">Giả lập gọi tên Bot</button>
-            <button class="btn-sim" onclick="location.href='/dashboard'" style="background: #2563eb;">Mở Dashboard Quản Lý (Tab Mới)</button>
+            <div style="font-weight: bold; margin-bottom: 8px; font-size: 12px; color: #fbbf24;">⚙️ Bảng Điều Khiển Giả Lập Tín Hiệu & Hiệu Ứng Phòng Live:</div>
+            
+            <div class="control-group">
+                <button class="btn-sim" onclick="injectChat('Mod_Master', 'ĐIỂM DANH + SC88 +')">Giả lập Điểm Danh từ Mod</button>
+                <button class="btn-sim" onclick="injectChat('Vip_Pro', 'SC88 + Xỉu + user123')">Giả lập Kèo Xỉu (Vip)</button>
+                <button class="btn-sim" onclick="injectChat('User_XYZ', 'yu45m ơi điểm danh đi')">Giả lập gọi tên Bot</button>
+                <button class="btn-sim" onclick="location.href='/dashboard'" style="background: #2563eb;">Mở Dashboard Quản Lý</button>
+            </div>
+
+            <hr style="border-color: #334155; margin: 8px 0;">
+
+            <div class="control-group">
+                <label>🎞️ Chọn Video:</label>
+                <select id="videoSourceSelect" onchange="changeVideoSource(this.value)" style="background:#0f172a; color:#fff; border:1px solid #334155; padding:4px; border-radius:4px; font-size:11px;">
+                    <option value="https://www.w3schools.com/html/mov_bbb.mp4">Big Buck Bunny (Mặc định)</option>
+                    <option value="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm">Flower (MDN Test)</option>
+                    <option value="https://www.w3schools.com/html/movie.mp4">Bear Movie</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>🎨 Hiệu ứng màu:</label>
+                <button class="btn-sim" onclick="setVideoFilter('none')">Bình thường</button>
+                <button class="btn-sim" onclick="setVideoFilter('grayscale(100%)')">Đen Trắng</button>
+                <button class="btn-sim" onclick="setVideoFilter('sepia(100%)')">Cổ Điển</button>
+                <button class="btn-sim" onclick="setVideoFilter('hue-rotate(90deg)')">Neon Xanh</button>
+                <button class="btn-sim" onclick="setVideoFilter('invert(100%)')">Đảo Ngược</button>
+            </div>
+
+            <div class="control-group">
+                <label>⚡ Trạng thái Live:</label>
+                <button class="btn-sim" onclick="toggleLiveStatus(true)" style="background:#059669;">Bật Live (Online)</button>
+                <button class="btn-sim" onclick="toggleLiveStatus(false)" style="background:#dc2626;">Tắt Live (Offline)</button>
+            </div>
         </div>
     </div>
 
@@ -191,6 +236,10 @@
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     const chatMessages = document.getElementById('chatMessages');
+    const liveVideo = document.getElementById('liveVideo');
+    const liveBadge = document.getElementById('liveBadge');
+
+    let currentIsOnLive = 1;
 
     function appendMessage(sender, text, color = "#f8fafc") {
         const div = document.createElement('div');
@@ -217,17 +266,63 @@
         appendMessage(sender, text, color);
     };
 
+    // Các hàm tùy chỉnh mới
+    window.changeVideoSource = function(url) {
+        liveVideo.src = url;
+        liveVideo.load();
+        liveVideo.play().catch(e => {});
+        appendMessage("System", "Đã thay đổi nguồn video mới.", "#fbbf24");
+    };
+
+    window.setVideoFilter = function(filterStyle) {
+        liveVideo.style.filter = filterStyle;
+        appendMessage("System", `Đã chuyển hiệu ứng video sang: ${filterStyle}`, "#38bdf8");
+    };
+
+    window.toggleLiveStatus = function(status) {
+        currentIsOnLive = status ? 1 : 0;
+        if (status) {
+            liveBadge.className = "live-badge";
+            liveBadge.innerText = "ĐANG PHÁT TRỰC TIẾP";
+            liveVideo.style.opacity = "1";
+            appendMessage("System", "Trạng thái phòng chuyển sang: Đang Live 🟢", "#10b981");
+        } else {
+            liveBadge.className = "live-badge offline";
+            liveBadge.innerText = "ĐÃ KẾT THÚC LIVE";
+            liveVideo.style.opacity = "0.3";
+            appendMessage("System", "Trạng thái phòng chuyển sang: Ngoại tuyến 🔴", "#ef4444");
+        }
+        sendSyncStatus();
+    };
+
     // Kết nối WebSocket tự động tới Server Hub
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const ws = new WebSocket(`${protocol}//${location.host}`);
+    let mySlaveId = 'tab_' + Math.random().toString(36).substring(2, 6);
     
     ws.onopen = () => {
         console.log('🔗 Đã kết nối WebSocket Hub thành công');
         ws.send(JSON.stringify({
             action: 'SYNC_REGISTER_TAB',
-            value: { id: 'tab_' + Math.random().toString(36).substring(2, 6), name: 'Hendy_Tester', role: 'MOD', channel: 'MOCK-LIVE' }
+            value: { id: mySlaveId, name: 'Hendy_Tester', role: 'MOD', channel: 'MOCK-LIVE' }
         }));
+        sendSyncStatus();
     };
+
+    function sendSyncStatus() {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                action: 'SYNC_STATUS',
+                slaveId: mySlaveId,
+                is_on_live: currentIsOnLive,
+                url: window.location.href,
+                nickname: 'Hendy_Tester'
+            }));
+        }
+    }
+
+    // Gửi heartbeat trạng thái định kỳ mỗi 5 giây
+    setInterval(sendSyncStatus, 5000);
 
     ws.onmessage = (event) => {
         try {
