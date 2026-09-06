@@ -15,7 +15,7 @@ const wss = new WebSocket.Server({ server });
 const PORT = process.env.PORT || 3000;
 let activeSlaves = new Map();
 
-// Phục vụ các file tĩnh (như index.html, css, js) từ thư mục hiện tại
+// Phục vụ các file tĩnh (index.html) từ thư mục hiện tại
 app.use(express.static(__dirname));
 
 // API cung cấp danh sách các Tab/Bot đang kết nối realtime lên Dashboard
@@ -182,7 +182,6 @@ wss.on('connection', (ws, req) => {
                         slaveInfo.name = data.nickname || slaveInfo.name;
                         slaveInfo.lastSeen = Date.now();
                     }
-                    // Phản hồi xác nhận trạng thái cho client nếu cần
                     ws.send(JSON.stringify({ status: 'OK', message: 'Sync received' }));
                     break;
 
@@ -191,7 +190,6 @@ wss.on('connection', (ws, req) => {
                     break;
 
                 default:
-                    // Broadcast các hành động chat hoặc tín hiệu khác tới các tab khác
                     if (data.action !== 'SYNC_PING_REQUEST') {
                         console.log(`[PHÁT LỆNH] Lệnh: ${data.action}`);
                     }
@@ -222,7 +220,5 @@ wss.on('close', () => {
 });
 
 server.listen(PORT, () => {
-    console.log(`🚀 [HENDY SERVER HUB] Đang chạy tại: http://localhost:${PORT}`);
-    console.log(`👉 Truy cập giao diện Mock Live tại: http://localhost:${PORT}`);
-    console.log(`👉 Truy cập Dashboard quản lý tại: http://localhost:${PORT}/dashboard`);
+    console.log(`🚀 [HENDY SERVER HUB] Đang chạy tại cổng: ${PORT}`);
 });
