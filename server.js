@@ -1,53 +1,86 @@
 /**
  * =====================================================================
- * ⚡ HENDY MASTER CENTRAL SERVER HUB (SYNC 2-WAY V3.8 - ADVANCED)
+ * ⚡ HENDY MASTER CENTRAL SERVER HUB & MOCK LIVE ENVIRONMENT (V3.8)
  * =====================================================================
  */
 
 const WebSocket = require('ws');
 const http = require('http');
+const express = require('express');
+
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
+let activeSlaves = new Map();
 
-// Tạo HTTP Server phục vụ trang chủ trạng thái & dashboard quản lý tab realtime
-const server = http.createServer((req, res) => {
-    if (req.url === '/api/slaves') {
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        let slavesList = [];
-        activeSlaves.forEach((client, id) => {
-            slavesList.push({
-                id: client.id,
-                name: client.name,
-                role: client.role,
-                channel: client.channel,
-                isOnLive: client.isOnLive,
-                url: client.url,
-                lastSeen: new Date(client.lastSeen).toLocaleTimeString('vi-VN')
-            });
+// Phục vụ các file tĩnh (như index.html, css, js) từ thư mục hiện tại
+app.use(express.static(__dirname));
+
+// API cung cấp danh sách các Tab/Bot đang kết nối realtime lên Dashboard
+app.get('/api/slaves', (req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    let slavesList = [];
+    activeSlaves.forEach((client, id) => {
+        slavesList.push({
+            id: client.id,
+            name: client.name,
+            role: client.role,
+            channel: client.channel,
+            isOnLive: client.isOnLive,
+            url: client.url,
+            lastSeen: new Date(client.lastSeen).toLocaleTimeString('vi-VN')
         });
-        res.end(JSON.stringify(slavesList, null, 2));
-        return;
-    }
+    });
+    res.end(JSON.stringify(slavesList, null, 2));
+});
 
+// API giao diện điều khiển từ xa để bấm gửi lệnh xuống tất cả các Bot/Tab đang mở
+app.get('/send-command', (req, res) => {
+    const cmd = req.query.cmd || 'ĐIỂM DANH + SC88 +';
+    let count = 0;
+    
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ action: `CHAT|${cmd}` }));
+            count++;
+        }
+    });
+    res.send(`🚀 Đã phát lệnh xuống thành công cho ${count} thiết bị/tab: [ ${cmd} ]`);
+});
+
+// Trang chủ Tổng đài Cyberpunk Dashboard kèm theo giao diện quản trị mạng lưới
+app.get('/dashboard', (req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(`
         <html>
             <head>
-                <title>HENDY CYBERPUNK SERVER HUB</title>
+                <title>HENDY CYBERPUNK SERVER HUB - DASHBOARD</title>
                 <style>
-                    body { background: #050208; color: #00e5ff; font-family: monospace; text-align: center; padding: 20px; }
+                    body { background: #050208; color: #00e5ff; font-family: monospace; text-align: center; padding: 20px; margin: 0; }
                     h1 { color: #ffcc00; text-shadow: 0 0 10px #ffcc00; }
-                    .box { background: #111827; border: 1px solid #10b981; border-radius: 8px; padding: 15px; margin: 20px auto; width: 80%; text-align: left; }
+                    .box { background: #111827; border: 1px solid #10b981; border-radius: 8px; padding: 15px; margin: 20px auto; width: 85%; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
                     table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
                     th, td { border: 1px solid #374151; padding: 8px; text-align: left; }
                     th { color: #10b981; }
+                    .btn-action { background: #10b981; border: none; color: #fff; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; margin: 5px; }
+                    .btn-action:hover { background: #059669; }
                 </style>
             </head>
             <body>
                 <h1>🚀 TỔNG ĐÀI HENDY CYBERPUNK [VIP PRO v3.8] 🚀</h1>
                 <h2>Trạng thái: <span style="color: #0f9;">ĐANG HOẠT ĐỘNG ONLINE</span></h2>
+                
                 <div class="box">
-                    <h3>📊 Thống kê mạng lưới Đàn Em</h3>
+                    <h3>🕹️ Điều khiển Nhanh Tab / Bot</h3>
+                    <button class="btn-action" onclick="sendCmd('ĐIỂM DANH + SC88 +')">Gửi Điểm Danh</button>
+                    <button class="btn-action" onclick="sendCmd('SC88 + Xỉu + user123')">Gửi Kèo Xỉu</button>
+                    <button class="btn-action" onclick="location.href='/'">Đến Phòng Test Live Mock</button>
+                </div>
+
+                <div class="box">
+                    <h3>📊 Thống kê mạng lưới Đàn Em (Slaves)</h3>
                     <p>Tổng số thiết bị kết nối WebSocket: <span id="totalClients" style="color:#ffcc00;">0</span></p>
                     <table>
                         <thead>
@@ -88,6 +121,10 @@ const server = http.createServer((req, res) => {
                             \`).join('');
                         } catch(e) {}
                     }
+                    function sendCmd(cmd) {
+                        fetch('/send-command?cmd=' + encodeURIComponent(cmd))
+                            .then(r => r.text()).then(msg => alert(msg));
+                    }
                     setInterval(fetchStatus, 3000);
                     fetchStatus();
                 </script>
@@ -96,30 +133,29 @@ const server = http.createServer((req, res) => {
     `);
 });
 
-const wss = new WebSocket.Server({ server });
-let activeSlaves = new Map();
-
-// Thuật toán dọn rác Heartbeat định kỳ
-const interval = setInterval(() => {
+// Thuật toán dọn rác Heartbeat định kỳ kiểm tra kết nối WebSocket sống/chết
+const heartbeatInterval = setInterval(() => {
     wss.clients.forEach((ws) => {
-        if (ws.isAlive === false) {
-            return ws.terminate();
-        }
+        if (ws.isAlive === false) return ws.terminate();
         ws.isAlive = false;
         ws.ping();
     });
 }, 30000);
 
+// Xử lý sự kiện kết nối WebSocket từ các Tab/Bot client
 wss.on('connection', (ws, req) => {
     ws.isAlive = true;
     ws.on('pong', () => { ws.isAlive = true; });
 
     let currentSlaveId = null;
+    console.log('🟢 Bot / Tab đã kết nối vào phòng test WebSocket!');
 
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
             if (!data || !data.action) return;
+
+            console.log('📥 Nhận từ Tab/Bot:', data);
 
             switch (data.action) {
                 case 'SYNC_REGISTER_TAB':
@@ -146,6 +182,8 @@ wss.on('connection', (ws, req) => {
                         slaveInfo.name = data.nickname || slaveInfo.name;
                         slaveInfo.lastSeen = Date.now();
                     }
+                    // Phản hồi xác nhận trạng thái cho client nếu cần
+                    ws.send(JSON.stringify({ status: 'OK', message: 'Sync received' }));
                     break;
 
                 case 'PING':
@@ -153,6 +191,7 @@ wss.on('connection', (ws, req) => {
                     break;
 
                 default:
+                    // Broadcast các hành động chat hoặc tín hiệu khác tới các tab khác
                     if (data.action !== 'SYNC_PING_REQUEST') {
                         console.log(`[PHÁT LỆNH] Lệnh: ${data.action}`);
                     }
@@ -164,7 +203,7 @@ wss.on('connection', (ws, req) => {
                     break;
             }
         } catch (e) {
-            console.error(`[LỖI DỮ LIỆU]:`, e.message);
+            console.error('Lỗi parse message:', e);
         }
     });
 
@@ -172,14 +211,18 @@ wss.on('connection', (ws, req) => {
         if (ws.slaveId && activeSlaves.has(ws.slaveId)) {
             activeSlaves.delete(ws.slaveId);
             console.log(`[NGẮT KẾT NỐI] Đã xóa Tab Slave: ${ws.slaveId}`);
+        } else {
+            console.log('🔴 Tab đã ngắt kết nối WebSocket.');
         }
     });
 });
 
 wss.on('close', () => {
-    clearInterval(interval);
+    clearInterval(heartbeatInterval);
 });
 
 server.listen(PORT, () => {
-    console.log(`[HENDY SERVER HUB] Đang chạy tại cổng: ${PORT}`);
+    console.log(`🚀 [HENDY SERVER HUB] Đang chạy tại: http://localhost:${PORT}`);
+    console.log(`👉 Truy cập giao diện Mock Live tại: http://localhost:${PORT}`);
+    console.log(`👉 Truy cập Dashboard quản lý tại: http://localhost:${PORT}/dashboard`);
 });
