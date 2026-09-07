@@ -23,7 +23,7 @@ app.get('/api/slaves', (req, res) => {
             name: client.name,
             role: client.role,
             channel: client.channel,
-            is_on_live: client.isOnLive,
+            isOnLive: client.isOnLive,
             url: client.url,
             lastSeen: new Date(client.lastSeen).toLocaleTimeString('vi-VN')
         });
@@ -40,7 +40,7 @@ app.get('/send-command', (req, res) => {
             count++;
         }
     });
-    res.send(`🚀 Đã phát lệnh xuống thành công cho ${count} thiết bị/tab: [ ${cmd} ]`);
+    res.send(`🚀 Đã phát lệnh xuống thành công cho ${count} thiết bị: [ ${cmd} ]`);
 });
 
 app.get('/dashboard', (req, res) => {
@@ -48,7 +48,7 @@ app.get('/dashboard', (req, res) => {
     res.end(`
         <html>
             <head>
-                <title>HENDY CYBERPUNK DASHBOARD</title>
+                <title>HENDY CYBERPUNK SERVER HUB - DASHBOARD</title>
                 <style>
                     body { background: #050208; color: #00e5ff; font-family: monospace; text-align: center; padding: 20px; margin: 0; }
                     h1 { color: #ffcc00; text-shadow: 0 0 10px #ffcc00; }
@@ -60,19 +60,25 @@ app.get('/dashboard', (req, res) => {
                 </style>
             </head>
             <body>
-                <h1>🚀 TỔNG ĐÀI HENDY CYBERPUNK [VIP PRO v3.8] 🚀</h1>
+                <h1>🚀 TỔNG ĐÀI HENDY CYBERPUNK [PRODUCTION] 🚀</h1>
+                <div class="box">
+                    <h3>🕹️ Điều khiển Nhanh Tab / Bot</h3>
+                    <button class="btn-action" onclick="sendCmd('ĐIỂM DANH + SC88 +')">Gửi Điểm Danh</button>
+                </div>
                 <div class="box">
                     <h3>📊 Thống kê mạng lưới Đàn Em (Slaves)</h3>
-                    <p>Tổng số thiết bị kết nối: <span id="totalClients" style="color:#ffcc00;">0</span></p>
+                    <p>Tổng thiết bị: <span id="totalClients" style="color:#ffcc00;">0</span></p>
                     <table>
                         <thead>
-                            <tr><th>ID Slave</th><th>Nickname</th><th>Kênh / Role</th><th>Trạng thái</th><th>URL hiện tại</th></tr>
+                            <tr><th>ID Slave</th><th>Nickname</th><th>Kênh / Role</th><th>Trạng thái</th><th>URL</th></tr>
                         </thead>
-                        <tbody id="slaveTableBody"><tr><td colspan="5" style="text-align:center;">Đang tải...</td></tr></tbody>
+                        <tbody id="slaveTableBody">
+                            <tr><td colspan="5" style="text-align:center;">Đang tải dữ liệu...</td></tr>
+                        </tbody>
                     </table>
                 </div>
                 <script>
-                    async function fetchSlaves() {
+                    async function fetchAndUpdateSlaves() {
                         try {
                             let res = await fetch('/api/slaves');
                             let data = await res.json();
@@ -87,14 +93,17 @@ app.get('/dashboard', (req, res) => {
                                     <td>\${s.id}</td>
                                     <td style="color:#00ffcc; font-weight:bold;">\${s.name}</td>
                                     <td>\${s.channel} (\${s.role})</td>
-                                    <td>\${s.is_on_live ? '<span style="color:#10b981">🟢 Đang Live</span>' : '<span style="color:#ef4444">🔴 Ngoại tuyến</span>'}</td>
-                                    <td><a href="\${s.url}" target="_blank" style="color:#38bdf8;">\${s.url || 'N/A'}</a></td>
+                                    <td>\${s.isOnLive ? '<span style="color:#10b981">🟢 Đang Live</span>' : '<span style="color:#ef4444">🔴 Offline</span>'}</td>
+                                    <td style="font-size:10px;"><a href="\${s.url}" target="_blank" style="color:#38bdf8;">\${s.url || 'N/A'}</a></td>
                                 </tr>
                             \`).join('');
-                        } catch(e){}
+                        } catch(e) {}
                     }
-                    setInterval(fetchSlaves, 3000);
-                    fetchSlaves();
+                    function sendCmd(cmd) {
+                        fetch('/send-command?cmd=' + encodeURIComponent(cmd)).then(r => r.text()).then(alert);
+                    }
+                    setInterval(fetchAndUpdateSlaves, 3000);
+                    fetchAndUpdateSlaves();
                 </script>
             </body>
         </html>
@@ -102,8 +111,8 @@ app.get('/dashboard', (req, res) => {
 });
 
 wss.on('connection', (ws) => {
-    let currentSlaveId = null;
     ws.isAlive = true;
+    let currentSlaveId = null;
     ws.on('pong', () => { ws.isAlive = true; });
 
     ws.on('message', (message) => {
@@ -115,13 +124,11 @@ wss.on('connection', (ws) => {
                 currentSlaveId = data.value?.id || ('slave_' + Math.random().toString(36).substring(2, 8));
                 ws.slaveId = currentSlaveId;
                 activeSlaves.set(currentSlaveId, {
-                    id: currentSlaveId,
+                    ws: ws, id: currentSlaveId,
                     name: data.value?.name || 'Khách',
                     role: data.value?.role || 'VIP_BOT',
                     channel: data.value?.channel || 'KENH-1',
-                    isOnLive: 1,
-                    url: '',
-                    lastSeen: now
+                    isOnLive: 1, url: '', lastSeen: now
                 });
             } else if (data.action === 'SYNC_STATUS') {
                 currentSlaveId = data.slaveId;
@@ -131,16 +138,6 @@ wss.on('connection', (ws) => {
                     slave.isOnLive = data.is_on_live;
                     slave.url = data.url;
                     slave.lastSeen = now;
-                } else if (currentSlaveId) {
-                    activeSlaves.set(currentSlaveId, {
-                        id: currentSlaveId,
-                        name: data.nickname || 'Unknown',
-                        role: 'VIP_BOT',
-                        channel: 'KENH-1',
-                        isOnLive: data.is_on_live,
-                        url: data.url,
-                        lastSeen: now
-                    });
                 }
             }
 
@@ -149,16 +146,14 @@ wss.on('connection', (ws) => {
                     client.send(message.toString());
                 }
             });
-        } catch(e) {}
+        } catch (e) {}
     });
 
     ws.on('close', () => {
-        if (ws.slaveId && activeSlaves.has(ws.slaveId)) {
-            activeSlaves.delete(ws.slaveId);
-        }
+        if (ws.slaveId && activeSlaves.has(ws.slaveId)) activeSlaves.delete(ws.slaveId);
     });
 });
 
 server.listen(PORT, () => {
-    console.log(`🚀 Server Hub chạy tại cổng ${PORT}`);
+    console.log(`🚀 [HENDY SERVER HUB] Đang chạy tại cổng: ${PORT}`);
 });
