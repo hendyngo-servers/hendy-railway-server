@@ -1,7 +1,3 @@
-=====================================================================
- * ⚡ HENDY MASTER CENTRAL SERVER HUB & MOCK LIVE ENVIRONMENT (V3.8)
- * =====================================================================
- */
 const WebSocket = require('ws');
 const http = require('http');
 const express = require('express');
