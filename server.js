@@ -8,6 +8,7 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
+const clients = new Set();
 const activeSlaves = new Map();
 const activeBots = new Map(); // Quản lý danh sách Bot động
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
+// API lấy danh sách Slaves
 app.get('/api/slaves', (req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     let slavesList = [];
@@ -37,6 +39,7 @@ app.get('/api/bots', (req, res) => {
     res.end(JSON.stringify(Array.from(activeBots.values()), null, 2));
 });
 
+// API gửi lệnh điều khiển nhanh
 app.get('/send-command', (req, res) => {
     const cmd = req.query.cmd || 'ĐIỂM DANH + SC88 +';
     let count = 0;
@@ -50,14 +53,20 @@ app.get('/send-command', (req, res) => {
 });
 
 wss.on('connection', (ws) => {
+    clients.add(ws);
     ws.isAlive = true;
     let currentSlaveId = null;
+    
+    console.log('[WS] Client đã kết nối thành công.');
+    ws.send(JSON.stringify({ type: 'SYSTEM', message: 'Kết nối thành công tới WebSocket Hub!' }));
+
     ws.on('pong', () => { ws.isAlive = true; });
 
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
             const now = Date.now();
+            console.log('[WS RECV]:', data);
 
             if (data.action === 'SYNC_REGISTER_TAB') {
                 currentSlaveId = data.value?.id || ('slave_' + Math.random().toString(36).substring(2, 8));
@@ -88,17 +97,23 @@ wss.on('connection', (ws) => {
                 console.log(`[BOT CREATED] ID: ${data.botId} | Acc: ${data.account}`);
             }
 
-            // Broadcast dữ liệu tới tất cả Client WebSocket khác
+            // Broadcast dữ liệu/lệnh tới tất cả Client WebSocket khác (kết hợp cả clients Set và wss.clients)
             wss.clients.forEach((client) => {
                 if (client !== ws && client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(data));
+                    client.send(JSON.stringify({ type: 'BROADCAST', data }));
                 }
             });
-        } catch (e) {}
+        } catch (e) {
+            console.error('[WS ERROR]: Lỗi xử lý message', e);
+        }
     });
 
     ws.on('close', () => {
-        if (ws.slaveId && activeSlaves.has(ws.slaveId)) activeSlaves.delete(ws.slaveId);
+        clients.delete(ws);
+        if (ws.slaveId && activeSlaves.has(ws.slaveId)) {
+            activeSlaves.delete(ws.slaveId);
+        }
+        console.log('[WS] Client đã ngắt kết nối.');
     });
 });
 
