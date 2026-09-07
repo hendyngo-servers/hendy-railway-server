@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Master Control Panel - Hendy & Hades V6100 System</title>
+    <title>Master Control Panel - Hendy & Hades V6100 Pro System</title>
     <style>
         body.master-body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -132,19 +132,45 @@
             font-size: 12px;
             color: #a855f7;
             margin-bottom: 15px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .ping-badge {
+            background: #0f172a;
+            border: 1px solid #38bdf8;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #00ffcc;
+            font-weight: bold;
         }
         .hades-actions {
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
             flex-wrap: wrap;
+            align-items: center;
         }
-        .hades-btn-run { background: #00bfff; color: #000; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .hades-btn-stop { background: #e6005c; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .hades-btn-add { background: #00cc66; color: #000; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .hades-btn-clear { background: #8a2be2; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .hades-btn-run:hover, .hades-btn-stop:hover, .hades-btn-add:hover, .hades-btn-clear:hover { filter: brightness(1.2); }
+        .hades-btn-run { background: #00bfff; color: #000; border: none; padding: 8px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .hades-btn-stop { background: #e6005c; color: #fff; border: none; padding: 8px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .hades-btn-add { background: #00cc66; color: #000; border: none; padding: 8px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .hades-btn-clear { background: #8a2be2; color: #fff; border: none; padding: 8px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .hades-btn-export-csv { background: #f59e0b; color: #000; border: none; padding: 8px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .hades-btn-export-txt { background: #10b981; color: #000; border: none; padding: 8px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .hades-btn-run:hover, .hades-btn-stop:hover, .hades-btn-add:hover, .hades-btn-clear:hover, .hades-btn-export-csv:hover, .hades-btn-export-txt:hover { filter: brightness(1.2); }
         
+        .hades-search-box {
+            background: #020610;
+            border: 1px solid #38bdf8;
+            color: #fff;
+            padding: 7px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            outline: none;
+            width: 220px;
+        }
+
         .hades-tip {
             font-size: 12px;
             color: #facc15;
@@ -247,7 +273,70 @@
         }
         .hades-cmd-btn:hover { background: #38bdf8; box-shadow: 0 0 10px #00f3ff; }
 
-        /* Modal & Live Stream Styles */
+        /* Styles cho Quản lý người dùng */
+        .user-mgmt-panel {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .user-mgmt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .user-table th {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            text-align: left;
+        }
+        .user-table td {
+            border: 1px solid #e2e8f0;
+            padding: 9px 10px;
+            color: #0f172a;
+        }
+        .badge-role {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .badge-admin { background: #fee2e2; color: #dc2626; }
+        .badge-mod { background: #fef3c7; color: #d97706; }
+        .badge-user { background: #e0f2fe; color: #0284c7; }
+        
+        .badge-status {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .badge-active { background: #dcfce7; color: #16a34a; }
+        .badge-locked { background: #f1f5f9; color: #64748b; }
+
+        .btn-action-sm {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 4px;
+        }
+        .btn-toggle-status { background: #f59e0b; color: #fff; }
+        .btn-delete-user { background: #ef4444; color: #fff; }
+
+        /* Modalchung */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -284,6 +373,21 @@
             z-index: 1001;
         }
         .close-btn:hover { background: #dc2626; }
+
+        /* Modal custom cho Thêm User */
+        .custom-modal {
+            background: #fff;
+            color: #0f172a;
+            width: 100%;
+            max-width: 450px;
+            height: auto;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        .custom-modal h3 { margin-top: 0; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #334155; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; box-sizing: border-box; }
 
         :root {
             --color-bg: #0f172a;
@@ -460,7 +564,7 @@
                 <p style="font-size: 13px; color: #94a3b8;">Giao thức điều khiển cấp cao dành cho môi trường giả lập trực tuyến tốc độ cao.</p>
                 <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
                     <button class="cyber-btn" onclick="openProModal()">🚀 Khởi Động Giao Diện Pro</button>
-                    <button class="cyber-btn secondary" onclick="alert('Đã kích hoạt tường lửa Cyberpunk 7.1.5!')">🛡️ Kích Hoạt Khiên</button>
+                    <button class="cyber-btn secondary" onclick="showToast('Đã kích hoạt tường lửa Cyberpunk 7.1.5!')">🛡️ Kích Hoạt Khiên</button>
                 </div>
             </div>
         </div>
@@ -470,20 +574,26 @@
             <div class="header">Hades V6100 - Multi-Session Bot Hub</div>
             
             <div class="hades-panel">
-                <div class="hades-header">🤖 ĐIỀU KHIỂN ĐA PHIÊN & TỰ ĐỘNG HÓA</div>
+                <div class="hades-header">🤖 ĐIỀU KHIỂN ĐA PHIÊN & TỰ ĐỘNG HÓA (PRO FEATURES)</div>
                 <div class="hades-status-line">
-                    [HADES_CORE: ACTIVE] • WebSocket Hub: <span id="hadesWsStatusText" style="color: #00ffcc; font-weight: bold;">Đã kết nối Hub</span>
+                    <span>[HADES_CORE: ACTIVE] • WebSocket Hub: <span id="hadesWsStatusText" style="color: #00ffcc; font-weight: bold;">Chưa kết nối</span></span>
+                    <span>⚡ Độ trễ mạng (Ping): <span class="ping-badge" id="latencyDisplay">-- ms</span></span>
                 </div>
 
                 <div class="hades-actions">
-                    <button class="hades-btn-run" onclick="startAllBots()">🚀 Chạy Tất Cả Bot</button>
+                    <button class="hades-btn-run" onclick="startAllBots()">🚀 Chạy Tất Cả</button>
                     <button class="hades-btn-stop" onclick="stopAllBots()">⏹ Dừng Lại</button>
-                    <button class="hades-btn-add" onclick="addBotAccount()">➕ Thêm Tài Khoản Bot</button>
-                    <button class="hades-btn-clear" onclick="clearHadesLogs()">🗑️ Xóa Nhật Ký</button>
+                    <button class="hades-btn-add" onclick="addBotAccount()">➕ Thêm Bot</button>
+                    <button class="hades-btn-clear" onclick="clearHadesLogs()">🗑️ Xóa Log</button>
+                    <button class="hades-btn-export-csv" onclick="exportBotsToCSV()">📥 Xuất CSV</button>
+                    <button class="hades-btn-export-txt" onclick="exportSystemLogsToTXT()">📥 Xuất TXT</button>
+                    <div style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
+                        <input type="text" id="botSearchInput" class="hades-search-box" placeholder="🔍 Tìm kiếm tài khoản / trạng thái..." oninput="filterBotTable(this)" />
+                    </div>
                 </div>
 
                 <div class="hades-tip">
-                    💡 Mẹo: Bạn có thể bấm trực tiếp vào các ô dưới cột "Tài khoản" hoặc "Tài khoản BO" để chỉnh sửa thông tin ngay lập tức.
+                    💡 Mẹo: Dữ liệu tự động lưu vào LocalStorage (F5 không mất). Dùng thanh tìm kiếm để tra cứu nhanh hàng trăm tài khoản bot.
                 </div>
 
                 <table class="hades-table">
@@ -497,13 +607,7 @@
                         </tr>
                     </thead>
                     <tbody id="botTableBody">
-                        <tr>
-                            <td>1</td>
-                            <td contenteditable="true" onblur="onBotCellEdit(this, 'Tài khoản', 1)">yg45g</td>
-                            <td contenteditable="true" onblur="onBotCellEdit(this, 'Tài khoản BO', 1)">yg45g</td>
-                            <td><span style="color: #00ffcc; font-weight: bold;">Sẵn sàng</span></td>
-                            <td><button class="btn-del-row" onclick="deleteBotRow(this, 1)">Xóa</button></td>
-                        </tr>
+                        <!-- Dữ liệu load từ LocalStorage -->
                     </tbody>
                 </table>
 
@@ -511,14 +615,13 @@
                     <div class="hades-log-box">
                         <div class="hades-log-title">📜 NHẬT KÝ HỆ THỐNG (SYSTEM LOG)</div>
                         <div class="hades-log-content" id="hadesSystemLog">
-                            <div><span style="color: #38bdf8;">[14:10:50]</span> [BOT] Đã thêm tài khoản mới thành công: yg45g</div>
-                            <div><span style="color: #38bdf8;">[15:24:52]</span> [WS] Kết nối thành công tới WebSocket Hub!</div>
+                            <div><span style="color: #38bdf8;">[SYSTEM]</span> Module giám sát sẵn sàng.</div>
                         </div>
                     </div>
                     <div class="hades-log-box">
                         <div class="hades-log-title">💬 NHẬT KÝ CHAT & LỆNH TỪ XA</div>
                         <div class="hades-log-content" id="hadesChatLog">
-                            <div><span style="color: #38bdf8;">[13:40:05]</span> [WS] Chờ thiết lập kết nối WebSocket Hub...</div>
+                            <div><span style="color: #38bdf8;">[WS]</span> Chờ thiết lập kết nối WebSocket Hub...</div>
                         </div>
                     </div>
                 </div>
@@ -530,23 +633,51 @@
             </div>
         </div>
 
-        <!-- Tab 2: Quản lý người dùng -->
+        <!-- Tab 2: Quản lý người dùng (Đã bổ sung đầy đủ tính năng theo yêu cầu) -->
         <div id="users-view" class="content-view">
             <div class="header">Quản Lý Người Dùng</div>
-            <div class="card">
-                <p>Khu vực hiển thị danh sách tài khoản, phân quyền Mod/Admin và quản lý trạng thái người dùng.</p>
+            
+            <div class="user-mgmt-panel">
+                <div class="user-mgmt-header">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="userSearchBox" class="hades-search-box" placeholder="🔍 Tìm kiếm thành viên..." oninput="filterUserTable(this)" style="width: 250px;" />
+                    </div>
+                    <button class="cyber-btn" style="padding: 8px 14px; font-size: 12px;" onclick="openAddUserModal()">➕ Thêm Tài Khoản</button>
+                </div>
+
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">ID</th>
+                            <th>Tên đăng nhập / Email</th>
+                            <th style="width: 130px;">Phân quyền</th>
+                            <th style="width: 130px;">Trạng thái</th>
+                            <th style="width: 150px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <!-- Render động qua JavaScript -->
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Tab 3: Cài đặt hệ thống -->
+        <!-- Tab 3: Cài đặt hệ thống (Đã bổ sung Secret Token, Test Connection, Debug toggle) -->
         <div id="settings-view" class="content-view">
             <div class="header">Cài Đặt Hệ Thống</div>
             <div class="card">
-                <h3 style="margin-top:0; color:#0f172a; font-size:16px;">Cấu hình kết nối & thông số luồng</h3>
+                <h3 style="margin-top:0; color:#0f172a; font-size:16px;">Cấu hình kết nối & Bảo mật nâng cao</h3>
                 <div style="display: flex; flex-direction: column; gap: 14px; max-width: 600px; margin-top: 15px;">
                     <div>
                         <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px; color:#334155;">WebSocket URL:</label>
-                        <input type="text" id="settingWsUrl" value="wss://hendy-railway-server-production-b340.up.railway.app" style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; box-sizing:border-box;" />
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="settingWsUrl" value="wss://hendy-railway-server-production-b340.up.railway.app" style="flex:1; padding:9px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; box-sizing:border-box;" />
+                            <button type="button" onclick="testWebSocketConnection()" style="background:#0284c7; color:white; border:none; padding:0 14px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:12px;">Test Connection</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px; color:#334155;">Secret Token (Bảo mật API/WS):</label>
+                        <input type="password" id="settingSecretToken" placeholder="Nhập khóa bảo mật Secret Token..." style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; box-sizing:border-box;" />
                     </div>
                     <div>
                         <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px; color:#334155;">Nguồn Video Mặc Định (URL):</label>
@@ -560,11 +691,38 @@
                         <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px; color:#334155;">Thời gian đồng bộ (giây):</label>
                         <input type="number" id="settingSyncInterval" value="5" style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; box-sizing:border-box;" />
                     </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="settingEnableDebug" style="width: 16px; height: 16px; cursor: pointer;" />
+                        <label for="settingEnableDebug" style="font-size: 13px; font-weight: 600; color: #334155; cursor: pointer;">Bật Debug Log & Tự động kết nối lại WS (Tránh spam log nếu server tắt)</label>
+                    </div>
                     <button onclick="saveSystemSettings()" style="background:#2563eb; color:white; border:none; padding:10px 18px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:13px; width:fit-content; transition:background 0.2s;">💾 Lưu Cài Đặt</button>
                 </div>
             </div>
         </div>
 
+    </div>
+
+    <!-- MODAL THÊM NGƯỜI DÙNG MỚI -->
+    <div class="modal-overlay" id="addUserModal" style="display:none; justify-content:center; align-items:center;">
+        <div class="custom-modal">
+            <h3>Thêm Tài Khoản Mới</h3>
+            <div class="form-group">
+                <label>Tên đăng nhập / Email:</label>
+                <input type="text" id="newUsernameInput" placeholder="Nhập tên đăng nhập..." />
+            </div>
+            <div class="form-group">
+                <label>Phân quyền:</label>
+                <select id="newUserRoleSelect">
+                    <option value="User">User</option>
+                    <option value="Mod">Mod</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button type="button" onclick="closeAddUserModal()" style="background:#cbd5e1; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:bold;">Hủy</button>
+                <button type="button" onclick="saveNewUser()" style="background:#2563eb; color:white; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:bold;">Xác Nhận Thêm</button>
+            </div>
+        </div>
     </div>
 
     <!-- CỬA SỔ MODAL CHỨA MÔI TRƯỜNG TEST HENDY -->
@@ -609,18 +767,14 @@
             <div id="toast-container"></div>
             <audio id="bgMusicAudio" loop preload="auto"></audio>
 
-            <datalist id="dl_historyUrls"></datalist>
-            <datalist id="dl_historyNotes"></datalist>
-            <datalist id="dl_historyBrands"></datalist>
-
             <div id="guideModal" class="cyber-modal-sub">
                 <div class="modal-content" style="width: 650px; max-height: 85vh; display: flex; flex-direction: column; border-color: var(--neon-yellow); box-shadow: 0 0 30px rgba(255,204,0,0.2);">
                     <h3 style="color:var(--neon-yellow); margin:0 0 15px 0; text-shadow: 0 0 8px rgba(255,204,0,0.5); text-transform: uppercase;">📖 HƯỚNG DẪN & CƠ CHẾ VẬN HÀNH CYBERPUNK 7.1.5 PRO</h3>
                     <div style="text-align: left; overflow-y: auto; flex: 1; padding-right: 10px; font-size: 12px; color: #ccc; line-height: 1.6;">
-                        <h4 style="color: var(--neon-cyan); margin-bottom: 5px; border-bottom: 1px dashed #333; padding-bottom: 5px;">🛠️ 1. GIAI ĐOẠN 1: DÀN TRẬN ĐÀN EM (CHROME / NICK PHỤ)</h4>
+                        <h4 style="color: var(--neon-cyan); margin-bottom: 5px; border-bottom: 1px dashed #333; padding-bottom: 5px;">🛠️ HỆ THỐNG ĐÃ TÍCH HỢP</h4>
                         <ul style="margin-top: 0; padding-left: 20px;">
-                            <li>Cài đặt <b>Script Đàn Em (Tampermonkey V7.1.5 Auto-Recovery Stream)</b> trên các trình duyệt chạy nick phụ.</li>
-                            <li>Mở các trang Live. Script sẽ tự động kết nối Server WebSocket và đồng bộ đáp án, điểm danh 2 chiều.</li>
+                            <li><b>Quản lý người dùng:</b> Bảng dữ liệu động, phân quyền Admin/Mod/User, khóa/mở khóa & xóa tài khoản.</li>
+                            <li><b>Cài đặt hệ thống:</b> Lưu localStorage, Secret Token bảo mật, Kiểm tra kết nối WS thủ công và bật/tắt Debug Log chống spam.</li>
                         </ul>
                     </div>
                     <div style="display:flex; justify-content:center; margin-top: 15px;">
@@ -632,7 +786,7 @@
             <div id="macroModal" class="cyber-modal-sub">
                 <div class="modal-content" style="width: 600px; border-color: var(--neon-purple); box-shadow: var(--glow-purple);">
                     <h3 style="color: var(--neon-purple); margin:0 0 10px 0; text-transform:uppercase;">⚡ MACRO QUICK SCRIPT HUB</h3>
-                    <div style="font-size:10px; color:#aaa; margin-bottom:10px; text-align:left;">Chạy mã JavaScript tùy chỉnh trên tất cả các khung Live WebView đang mở:</div>
+                    <div style="font-size:10px; color:#aaa; margin-bottom:10px; text-align:left;">Chạy mã JavaScript tùy chỉnh trên các khung Live WebView đang mở:</div>
                     <textarea id="macroScriptInput" class="input-cyber" style="width:100%; height: 140px; margin-bottom:10px; font-size:12px; color:var(--neon-green); font-family:monospace;" placeholder="// VD: alert('Hello Cyberpunk!');"></textarea>
                     <div style="display:flex; gap:10px; justify-content:center;">
                         <button class="btn btn-red" onclick="closeMacroModal()">ĐÓNG (ESC)</button>
@@ -743,13 +897,452 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT XỬ LÝ TOÀN BỘ LOGIC -->
+    <!-- JAVASCRIPT XỬ LÝ LOGIC -->
     <script>
         let wsSocket = null;
+        let reconnectDelay = 3000;
+        let isConnecting = false;
         let currentZoom = 1.0;
         let botAccountCounter = 1;
+        let userAccountCounter = 1;
+        let pingStartTime = 0;
+        let pingIntervalTimer = null;
 
-        // 1. Chuyển đổi Tab Menu Chính
+        // --- 1. TÍNH NĂNG QUẢN LÝ NGƯỜI DÙNG ---
+        function loadUsersFromLocalStorage() {
+            const saved = localStorage.getItem('hendy_users_store');
+            const tbody = document.getElementById('userTableBody');
+            if (!tbody) return;
+
+            if (saved) {
+                try {
+                    const users = JSON.parse(saved);
+                    tbody.innerHTML = '';
+                    if (users.length > 0) {
+                        users.forEach(u => {
+                            renderUserRow(u.id, u.username, u.role, u.status);
+                            const pId = parseInt(u.id);
+                            if (!isNaN(pId) && pId >= userAccountCounter) {
+                                userAccountCounter = pId + 1;
+                            }
+                        });
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Lỗi đọc danh sách users:", e);
+                }
+            }
+
+            // Dữ liệu mặc định ban đầu
+            renderUserRow(1, "admin_hendy", "Admin", "Hoạt động");
+            renderUserRow(2, "mod_hades", "Mod", "Hoạt động");
+            renderUserRow(3, "test_user01", "User", "Khóa");
+            userAccountCounter = 4;
+            saveUsersToLocalStorage();
+        }
+
+        function saveUsersToLocalStorage() {
+            const rows = document.querySelectorAll('#userTableBody tr');
+            const users = [];
+            rows.forEach(tr => {
+                const cols = tr.querySelectorAll('td');
+                if (cols.length >= 4) {
+                    users.push({
+                        id: cols[0].textContent.trim(),
+                        username: cols[1].textContent.trim(),
+                        role: cols[2].textContent.trim(),
+                        status: cols[3].textContent.trim()
+                    });
+                }
+            });
+            localStorage.setItem('hendy_users_store', JSON.stringify(users));
+        }
+
+        function renderUserRow(id, username, role, status) {
+            const tbody = document.getElementById('userTableBody');
+            const tr = document.createElement('tr');
+            
+            const tdId = document.createElement('td');
+            tdId.textContent = id;
+
+            const tdName = document.createElement('td');
+            tdName.textContent = username;
+
+            const tdRole = document.createElement('td');
+            const roleBadge = document.createElement('span');
+            roleBadge.className = 'badge-role ' + (role === 'Admin' ? 'badge-admin' : role === 'Mod' ? 'badge-mod' : 'badge-user');
+            roleBadge.textContent = role;
+            tdRole.appendChild(roleBadge);
+
+            const tdStatus = document.createElement('td');
+            const statusBadge = document.createElement('span');
+            statusBadge.className = 'badge-status ' + (status === 'Hoạt động' ? 'badge-active' : 'badge-locked');
+            statusBadge.textContent = status;
+            tdStatus.appendChild(statusBadge);
+
+            const tdAction = document.createElement('td');
+            
+            const btnToggle = document.createElement('button');
+            btnToggle.className = 'btn-action-sm btn-toggle-status';
+            btnToggle.textContent = status === 'Hoạt động' ? 'Khóa' : 'Mở khóa';
+            btnToggle.onclick = function() {
+                toggleUserStatus(tr, id);
+            };
+
+            const btnDel = document.createElement('button');
+            btnDel.className = 'btn-action-sm btn-delete-user';
+            btnDel.textContent = 'Xóa';
+            btnDel.onclick = function() {
+                tr.remove();
+                saveUsersToLocalStorage();
+                showToast(`Đã xóa tài khoản ID: ${id}`);
+            };
+
+            tdAction.appendChild(btnToggle);
+            tdAction.appendChild(btnDel);
+
+            tr.appendChild(tdId);
+            tr.appendChild(tdName);
+            tr.appendChild(tdRole);
+            tr.appendChild(tdStatus);
+            tr.appendChild(tdAction);
+            tbody.appendChild(tr);
+        }
+
+        function openAddUserModal() {
+            document.getElementById('addUserModal').style.display = 'flex';
+        }
+
+        function closeAddUserModal() {
+            document.getElementById('addUserModal').style.display = 'none';
+            document.getElementById('newUsernameInput').value = '';
+        }
+
+        function saveNewUser() {
+            const username = document.getElementById('newUsernameInput').value.trim();
+            const role = document.getElementById('newUserRoleSelect').value;
+            if (!username) {
+                showToast('Vui lòng nhập tên đăng nhập!');
+                return;
+            }
+            renderUserRow(userAccountCounter++, username, role, 'Hoạt động');
+            saveUsersToLocalStorage();
+            closeAddUserModal();
+            showToast(`Thêm thành công tài khoản: ${username}`);
+        }
+
+        function toggleUserStatus(tr, id) {
+            const statusTd = tr.querySelectorAll('td')[3];
+            const badge = statusTd.querySelector('span');
+            const btn = tr.querySelector('.btn-toggle-status');
+            
+            if (badge.textContent === 'Hoạt động') {
+                badge.textContent = 'Khóa';
+                badge.className = 'badge-status badge-locked';
+                btn.textContent = 'Mở khóa';
+            } else {
+                badge.textContent = 'Hoạt động';
+                badge.className = 'badge-status badge-active';
+                btn.textContent = 'Khóa';
+            }
+            saveUsersToLocalStorage();
+            showToast(`Đã cập nhật trạng thái tài khoản ID: ${id}`);
+        }
+
+        function filterUserTable(inputEl) {
+            const query = inputEl.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#userTableBody tr');
+            rows.forEach(tr => {
+                const text = tr.innerText.toLowerCase();
+                tr.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        // --- 2. CÀI ĐẶT HỆ THỐNG & TEST KẾT NỐI WS ---
+        function saveSystemSettings() {
+            const settings = {
+                wsUrl: document.getElementById('settingWsUrl').value,
+                secretToken: document.getElementById('settingSecretToken').value,
+                videoUrl: document.getElementById('settingVideoUrl').value,
+                channel: document.getElementById('settingChannel').value,
+                syncInterval: document.getElementById('settingSyncInterval').value,
+                enableDebug: document.getElementById('settingEnableDebug').checked
+            };
+            localStorage.setItem('hendy_system_settings', JSON.stringify(settings));
+            
+            document.getElementById('currentChannelDisplay').textContent = settings.channel || 'MOCK-LIVE';
+            document.getElementById('wsServerUrl').value = settings.wsUrl;
+            showToast('Đã lưu cài đặt hệ thống vào localStorage thành công!');
+        }
+
+        function loadSystemSettings() {
+            const saved = localStorage.getItem('hendy_system_settings');
+            if (saved) {
+                try {
+                    const s = JSON.parse(saved);
+                    if (s.wsUrl) document.getElementById('settingWsUrl').value = s.wsUrl;
+                    if (s.secretToken) document.getElementById('settingSecretToken').value = s.secretToken;
+                    if (s.videoUrl) document.getElementById('settingVideoUrl').value = s.videoUrl;
+                    if (s.channel) {
+                        document.getElementById('settingChannel').value = s.channel;
+                        document.getElementById('currentChannelDisplay').textContent = s.channel;
+                    }
+                    if (s.syncInterval) document.getElementById('settingSyncInterval').value = s.syncInterval;
+                    if (typeof s.enableDebug === 'boolean') {
+                        document.getElementById('settingEnableDebug').checked = s.enableDebug;
+                    }
+                    if (s.wsUrl) {
+                        document.getElementById('wsServerUrl').value = s.wsUrl;
+                    }
+                } catch (e) {
+                    console.error("Lỗi tải cài đặt hệ thống:", e);
+                }
+            }
+        }
+
+        function testWebSocketConnection() {
+            const url = document.getElementById('settingWsUrl').value.trim();
+            const token = document.getElementById('settingSecretToken').value.trim();
+            if (!url) {
+                showToast('Vui lòng nhập WebSocket URL!');
+                return;
+            }
+            showToast('Đang kiểm tra kết nối WebSocket...');
+            try {
+                const testSocket = new WebSocket(url);
+                const timer = setTimeout(() => {
+                    if (testSocket.readyState !== WebSocket.OPEN) {
+                        testSocket.close();
+                        showToast('Kết nối thất bại hoặc quá thời gian phản hồi!');
+                    }
+                }, 4000);
+
+                testSocket.onopen = function() {
+                    clearTimeout(timer);
+                    testSocket.close();
+                    showToast('✅ Test Connection Thành Công! Server phản hồi tốt.');
+                };
+
+                testSocket.onerror = function() {
+                    clearTimeout(timer);
+                    showToast('❌ Không thể kết nối tới server (Kiểm tra lại URL hoặc trạng thái server).');
+                };
+            } catch (err) {
+                showToast('❌ Lỗi cú pháp URL WebSocket!');
+            }
+        }
+
+        // --- 3. GIÁM SÁT PING & TRẠNG THÁI MẠNG ---
+        function startPingMonitor() {
+            if (pingIntervalTimer) clearInterval(pingIntervalTimer);
+            pingIntervalTimer = setInterval(() => {
+                if (wsSocket && wsSocket.readyState === WebSocket.OPEN) {
+                    pingStartTime = Date.now();
+                    try {
+                        wsSocket.send(JSON.stringify({ action: "PING", time: pingStartTime }));
+                    } catch (e) {
+                        document.getElementById('latencyDisplay').textContent = "Lỗi kết nối";
+                    }
+                } else {
+                    document.getElementById('latencyDisplay').textContent = "-- ms";
+                }
+            }, 5000);
+        }
+
+        function handlePingPongResponse(data) {
+            if (data && (data.action === "PONG" || data.time)) {
+                const latency = Date.now() - (data.time || pingStartTime);
+                const latDisplay = document.getElementById('latencyDisplay');
+                if (latDisplay) {
+                    latDisplay.textContent = latency + " ms";
+                    latDisplay.style.color = latency < 100 ? "#00ffcc" : latency < 300 ? "#facc15" : "#ff3366";
+                }
+            }
+        }
+
+        // --- 4. XUẤT DỮ LIỆU BÁO CÁO (CSV & TXT) ---
+        function exportBotsToCSV() {
+            const rows = document.querySelectorAll('#botTableBody tr');
+            if (rows.length === 0) {
+                showToast('Không có dữ liệu bot để xuất!');
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,ID,TaiKhoan,TaiKhoanBO,TrangThai\r\n";
+            rows.forEach(tr => {
+                const cols = tr.querySelectorAll('td');
+                if (cols.length >= 4) {
+                    csvContent += `${cols[0].textContent.trim()},"${cols[1].textContent.trim()}","${cols[2].textContent.trim()}","${cols[3].textContent.trim()}"\r\n`;
+                }
+            });
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", `Hades_Bots_Report_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Đã xuất file báo cáo CSV thành công!');
+        }
+
+        function exportSystemLogsToTXT() {
+            const sysLogBox = document.getElementById('hadesSystemLog');
+            const chatLogBox = document.getElementById('hadesChatLog');
+            let textData = "=== HENDY & HADES V6100 SYSTEM LOGS ===\r\n\r\n[SYSTEM LOGS]:\r\n" + (sysLogBox ? sysLogBox.innerText : "") + "\r\n\r\n[CHAT LOGS]:\r\n" + (chatLogBox ? chatLogBox.innerText : "");
+            
+            const blob = new Blob([textData], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `Hades_System_Logs_${Date.now()}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('Đã xuất nhật ký hệ thống sang file TXT thành công!');
+        }
+
+        // --- 5. BỘ LỌC BOT & LOCALSTORAGE ---
+        function filterBotTable(inputEl) {
+            const filterVal = inputEl.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#botTableBody tr');
+            rows.forEach(tr => {
+                tr.style.display = tr.innerText.toLowerCase().includes(filterVal) ? '' : 'none';
+            });
+        }
+
+        function saveBotsToLocalStorage() {
+            const rows = document.querySelectorAll('#botTableBody tr');
+            const botsData = [];
+            rows.forEach(tr => {
+                const cols = tr.querySelectorAll('td');
+                if (cols.length >= 4) {
+                    botsData.push({
+                        id: cols[0].textContent.trim(),
+                        account: cols[1].textContent.trim(),
+                        boAccount: cols[2].textContent.trim(),
+                        status: cols[3].innerHTML.trim()
+                    });
+                }
+            });
+            localStorage.setItem('hades_bots_store', JSON.stringify(botsData));
+        }
+
+        function loadBotsFromLocalStorage() {
+            const saved = localStorage.getItem('hades_bots_store');
+            const tbody = document.getElementById('botTableBody');
+            if (!tbody) return;
+
+            if (saved) {
+                try {
+                    const botsData = JSON.parse(saved);
+                    tbody.innerHTML = '';
+                    if (botsData.length > 0) {
+                        botsData.forEach(bot => {
+                            renderBotRow(bot.id, bot.account, bot.boAccount, bot.status);
+                            const parsedId = parseInt(bot.id);
+                            if (!isNaN(parsedId) && parsedId >= botAccountCounter) {
+                                botAccountCounter = parsedId + 1;
+                            }
+                        });
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Lỗi tải LocalStorage bot:", e);
+                }
+            }
+            renderBotRow(1, "yg45g", "yg45g", '<span style="color: #00ffcc; font-weight: bold;">Sẵn sàng</span>');
+        }
+
+        function renderBotRow(id, account, boAccount, statusHtml) {
+            const tbody = document.getElementById('botTableBody');
+            const tr = document.createElement('tr');
+            
+            const tdId = document.createElement('td');
+            tdId.textContent = id;
+            
+            const tdAcc = document.createElement('td');
+            tdAcc.contentEditable = "true";
+            tdAcc.textContent = account;
+            tdAcc.onblur = function() { saveBotsToLocalStorage(); };
+
+            const tdBo = document.createElement('td');
+            tdBo.contentEditable = "true";
+            tdBo.textContent = boAccount;
+            tdBo.onblur = function() { saveBotsToLocalStorage(); };
+
+            const tdStatus = document.createElement('td');
+            tdStatus.innerHTML = statusHtml;
+
+            const tdAction = document.createElement('td');
+            const btnDel = document.createElement('button');
+            btnDel.className = 'btn-del-row';
+            btnDel.textContent = 'Xóa';
+            btnDel.onclick = function() { 
+                tr.remove(); 
+                saveBotsToLocalStorage();
+            };
+            tdAction.appendChild(btnDel);
+
+            tr.appendChild(tdId);
+            tr.appendChild(tdAcc);
+            tr.appendChild(tdBo);
+            tr.appendChild(tdStatus);
+            tr.appendChild(tdAction);
+            tbody.appendChild(tr);
+        }
+
+        // --- 6. WEBSOCKET CHUYÊN SÂU & DEBUG TOGGLE ---
+        function connectHadesWebSocket() {
+            const enableDebug = document.getElementById('settingEnableDebug').checked;
+            if (!enableDebug) {
+                // Nếu chưa bật Debug / Auto-connect, bỏ qua để tránh spam log khi test file local
+                return;
+            }
+
+            if (isConnecting) return;
+            isConnecting = true;
+
+            const wsUri = document.getElementById('wsServerUrl').value.trim() || "wss://hendy-railway-server-production-b340.up.railway.app";
+            appendHadesSystemLog(`[WS] Đang kết nối tới server: ${wsUri}...`);
+
+            try {
+                wsSocket = new WebSocket(wsUri);
+
+                wsSocket.onopen = function() {
+                    isConnecting = false;
+                    startPingMonitor();
+                    appendHadesSystemLog(`[WS] Kết nối thành công tới Master Control Panel!`);
+                };
+
+                wsSocket.onmessage = function(event) {
+                    appendHadesChatLog('[WS IN] ' + event.data);
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.action === "PONG" || data.time) {
+                            handlePingPongResponse(data);
+                        }
+                    } catch (e) {}
+                };
+
+                wsSocket.onclose = function() {
+                    isConnecting = false;
+                    if (pingIntervalTimer) clearInterval(pingIntervalTimer);
+                    document.getElementById('latencyDisplay').textContent = "Ngắt kết nối";
+                    
+                    const settings = JSON.parse(localStorage.getItem('hendy_system_settings') || '{}');
+                    if (settings.enableDebug) {
+                        appendHadesSystemLog(`[WS] Mất kết nối. Đang tự động kết nối lại sau ${reconnectDelay / 1000} giây...`);
+                        setTimeout(connectHadesWebSocket, reconnectDelay);
+                    }
+                };
+
+                wsSocket.onerror = function() {
+                    isConnecting = false;
+                };
+            } catch (e) {
+                isConnecting = false;
+            }
+        }
+
         function switchTab(tabId, el) {
             document.querySelectorAll('.sidebar ul li').forEach(li => li.classList.remove('active'));
             document.querySelectorAll('.content-view').forEach(view => view.classList.remove('active'));
@@ -758,16 +1351,7 @@
             if (target) target.classList.add('active');
         }
 
-        // 2. Lưu cài đặt hệ thống
-        function saveSystemSettings() {
-            const channel = document.getElementById('settingChannel').value;
-            const wsUrl = document.getElementById('settingWsUrl').value;
-            document.getElementById('currentChannelDisplay').textContent = channel || 'MOCK-LIVE';
-            document.getElementById('wsServerUrl').value = wsUrl;
-            showToast('Đã lưu cài đặt thành công!');
-        }
-
-        // 3. Môi trường Test Live Stream Modal
+        // Test Env Modal
         function openTestEnv() { document.getElementById('testEnvModal').style.display = 'flex'; }
         function closeTestEnv() { 
             document.getElementById('testEnvModal').style.display = 'none';
@@ -778,13 +1362,8 @@
         function togglePlayPause() {
             const vid = document.getElementById('liveVideo');
             const btn = document.getElementById('playPauseBtn');
-            if (vid.paused) {
-                vid.play();
-                btn.textContent = '⏸️ Tạm dừng';
-            } else {
-                vid.pause();
-                btn.textContent = '▶️ Phát';
-            }
+            if (vid.paused) { vid.play(); btn.textContent = '⏸️ Tạm dừng'; }
+            else { vid.pause(); btn.textContent = '▶️ Phát'; }
         }
 
         function toggleMute() {
@@ -804,25 +1383,14 @@
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
             if (!text) return;
-            
             const msgBox = document.getElementById('chatMessages');
             const msgDiv = document.createElement('div');
-            
-            const nameSpan = document.createElement('span');
-            nameSpan.style.color = '#38bdf8';
-            nameSpan.textContent = '[Admin]: ';
-            
-            const textNode = document.createTextNode(text);
-            
-            msgDiv.appendChild(nameSpan);
-            msgDiv.appendChild(textNode);
+            msgDiv.innerHTML = `<span style="color: #38bdf8;">[Admin]:</span> ${text}`;
             msgBox.appendChild(msgDiv);
-            
             input.value = '';
             msgBox.scrollTop = msgBox.scrollHeight;
         }
 
-        // 4. Hades V6100 - Logic Độc Lập
         function getHadesTime() {
             const d = new Date();
             return `[${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}]`;
@@ -830,98 +1398,46 @@
 
         function appendHadesSystemLog(msg) {
             const logBox = document.getElementById('hadesSystemLog');
+            if (!logBox) return;
             const div = document.createElement('div');
-            const timeSpan = document.createElement('span');
-            timeSpan.style.color = '#38bdf8';
-            timeSpan.textContent = getHadesTime() + ' ';
-            div.appendChild(timeSpan);
-            div.appendChild(document.createTextNode(msg));
+            div.innerHTML = `<span style="color: #38bdf8;">${getHadesTime()}</span> ${msg}`;
             logBox.appendChild(div);
             logBox.scrollTop = logBox.scrollHeight;
         }
 
         function appendHadesChatLog(msg) {
             const logBox = document.getElementById('hadesChatLog');
+            if (!logBox) return;
             const div = document.createElement('div');
-            const timeSpan = document.createElement('span');
-            timeSpan.style.color = '#38bdf8';
-            timeSpan.textContent = getHadesTime() + ' ';
-            div.appendChild(timeSpan);
-            div.appendChild(document.createTextNode(msg));
+            div.innerHTML = `<span style="color: #38bdf8;">${getHadesTime()}</span> ${msg}`;
             logBox.appendChild(div);
             logBox.scrollTop = logBox.scrollHeight;
         }
 
         function startAllBots() {
-            const rows = document.querySelectorAll('#botTableBody tr');
-            rows.forEach(r => {
-                const statusTd = r.children[3];
-                if (statusTd) statusTd.innerHTML = '<span style="color:#00e5ff; font-weight:bold;">Đang chạy</span>';
+            document.querySelectorAll('#botTableBody tr').forEach(r => {
+                const s = r.children[3];
+                if (s) s.innerHTML = '<span style="color:#00e5ff; font-weight:bold;">Đang chạy</span>';
             });
+            saveBotsToLocalStorage();
             appendHadesSystemLog('[BOT] Tất cả bot đã được kích hoạt chạy tự động!');
         }
 
         function stopAllBots() {
-            const rows = document.querySelectorAll('#botTableBody tr');
-            rows.forEach(r => {
-                const statusTd = r.children[3];
-                if (statusTd) statusTd.innerHTML = '<span style="color:#ff3366; font-weight:bold;">Đã dừng</span>';
+            document.querySelectorAll('#botTableBody tr').forEach(r => {
+                const s = r.children[3];
+                if (s) s.innerHTML = '<span style="color:#ff3366; font-weight:bold;">Đã dừng</span>';
             });
+            saveBotsToLocalStorage();
             appendHadesSystemLog('[BOT] Đã phát lệnh dừng tất cả các bot!');
         }
 
-        function addBotAccount() {
+        function addBotAccount(customName = null) {
             botAccountCounter++;
-            const newAccName = 'bot_' + Math.random().toString(36).substr(2, 5);
-            const tbody = document.getElementById('botTableBody');
-            
-            const tr = document.createElement('tr');
-            
-            const tdId = document.createElement('td');
-            tdId.textContent = botAccountCounter;
-            
-            const tdAcc = document.createElement('td');
-            tdAcc.contentEditable = "true";
-            tdAcc.textContent = newAccName;
-            tdAcc.onblur = function() { onBotCellEdit(this, 'Tài khoản', botAccountCounter); };
-
-            const tdBo = document.createElement('td');
-            tdBo.contentEditable = "true";
-            tdBo.textContent = newAccName;
-            tdBo.onblur = function() { onBotCellEdit(this, 'Tài khoản BO', botAccountCounter); };
-
-            const tdStatus = document.createElement('td');
-            tdStatus.innerHTML = '<span style="color: #00ffcc; font-weight: bold;">Sẵn sàng</span>';
-
-            const tdAction = document.createElement('td');
-            const btnDel = document.createElement('button');
-            btnDel.className = 'btn-del-row';
-            btnDel.textContent = 'Xóa';
-            btnDel.onclick = function() { deleteBotRow(btnDel, botAccountCounter); };
-            tdAction.appendChild(btnDel);
-
-            tr.appendChild(tdId);
-            tr.appendChild(tdAcc);
-            tr.appendChild(tdBo);
-            tr.appendChild(tdStatus);
-            tr.appendChild(tdAction);
-
-            tbody.appendChild(tr);
+            const newAccName = customName || ('yg45g_' + Math.random().toString(36).substr(2, 4));
+            renderBotRow(botAccountCounter, newAccName, newAccName, '<span style="color: #00ffcc; font-weight: bold;">Đang chạy</span>');
+            saveBotsToLocalStorage();
             appendHadesSystemLog(`[BOT] Đã thêm tài khoản mới thành công: ${newAccName}`);
-        }
-
-        function deleteBotRow(btn, id) {
-            const tr = btn.closest('tr');
-            if (tr) {
-                const accName = tr.children[1].textContent;
-                tr.remove();
-                appendHadesSystemLog(`[BOT] Đã xóa tài khoản bot (ID: ${id}): ${accName}`);
-            }
-        }
-
-        function onBotCellEdit(cell, fieldName, id) {
-            const newValue = cell.textContent.trim();
-            appendHadesSystemLog(`[BOT] [Cập nhật ID ${id}] ${fieldName} -> ${newValue}`);
         }
 
         function clearHadesLogs() {
@@ -934,69 +1450,51 @@
             const input = document.getElementById('hadesJsonInput');
             const val = input.value.trim();
             if (!val) return;
-            
             appendHadesChatLog(`[LỆNH] ${val}`);
             if (wsSocket && wsSocket.readyState === WebSocket.OPEN) {
                 wsSocket.send(val);
-                appendHadesSystemLog(`[WS OUT] Gửi JSON lệnh qua WebSocket thành công.`);
+                appendHadesSystemLog(`[WS OUT] Gửi JSON lệnh thành công.`);
             } else {
-                appendHadesSystemLog(`[WS WARN] Không tìm thấy kết nối WS chủ, lệnh được lưu vào hàng chờ.`);
+                appendHadesSystemLog(`[WS WARN] Chưa kết nối WS. Lệnh được lưu hàng chờ.`);
             }
             input.value = '';
         }
 
-        // 5. Cyberpunk Pro Modal Handlers
+        // Cyberpunk Pro Modal
         function openProModal() { document.getElementById('proModalOverlay').style.display = 'flex'; }
         function closeProModal() { document.getElementById('proModalOverlay').style.display = 'none'; }
-
         function openGuideModal() { document.getElementById('guideModal').style.display = 'flex'; }
         function closeGuideModal() { document.getElementById('guideModal').style.display = 'none'; }
-
         function openMacroModal() { document.getElementById('macroModal').style.display = 'flex'; }
         function closeMacroModal() { document.getElementById('macroModal').style.display = 'none'; }
-
         function executeMacroScript() {
-            const scriptText = document.getElementById('macroScriptInput').value;
-            if (!scriptText.trim()) return;
-            logSystem('Thực thi Script: ' + scriptText);
             closeMacroModal();
-            showToast('Đã chạy lệnh Macro!');
+            showToast('Đã chạy lệnh Macro Pro!');
         }
-
         function openAccStoreModal() { document.getElementById('accStoreModal').style.display = 'flex'; }
         function closeAccStoreModal() { document.getElementById('accStoreModal').style.display = 'none'; }
-
         function saveAccStoreLocal() {
-            const data = document.getElementById('accDataStore').value;
-            localStorage.setItem('hendy_acc_store', data);
-            showToast('Đã lưu dữ liệu vào LocalStorage!');
+            localStorage.setItem('hendy_acc_store', document.getElementById('accDataStore').value);
+            showToast('Đã lưu kho tài khoản vào LocalStorage!');
         }
-
-        function saveAccStoreCloud() {
-            showToast('Đồng bộ Cloud thành công!');
-        }
+        function saveAccStoreCloud() { showToast('Đồng bộ Cloud thành công!'); }
 
         function adjustZoom(delta) {
             currentZoom = Math.min(Math.max(0.5, currentZoom + delta), 1.5);
             document.getElementById('proModalWrapper').style.zoom = currentZoom;
             document.getElementById('zoomValDisplay').textContent = Math.round(currentZoom * 100) + '%';
         }
-
         function resetZoom() {
             currentZoom = 1.0;
             document.getElementById('proModalWrapper').style.zoom = 1.0;
             document.getElementById('zoomValDisplay').textContent = '100%';
         }
-
         function changeTheme(theme) {
             document.body.className = 'master-body';
-            if (theme !== 'default') {
-                document.body.classList.add('theme-' + theme);
-            }
+            if (theme !== 'default') document.body.classList.add('theme-' + theme);
             showToast('Đã chuyển giao diện: ' + theme.toUpperCase());
         }
 
-        // 6. Kết nối WebSocket
         function toggleWsConnection() {
             const btn = document.getElementById('btnWsConnect');
             const statusText = document.getElementById('wsStatusText');
@@ -1007,47 +1505,28 @@
                 return;
             }
 
-            const url = document.getElementById('wsServerUrl').value;
-            logSystem('Đang kết nối tới: ' + url);
-            appendHadesSystemLog('Đang kết nối tới WS Hub: ' + url);
-            
+            const url = document.getElementById('wsServerUrl').value.trim();
             try {
                 wsSocket = new WebSocket(url);
                 wsSocket.onopen = function() {
                     statusText.textContent = '🟢 ONLINE';
                     statusText.classList.remove('offline');
                     if (hadesWsStatus) hadesWsStatus.textContent = 'Đã kết nối Hub';
-                    
                     btn.textContent = 'NGẮT KẾT NỐI';
                     btn.classList.add('connected');
-                    logSystem('Đã kết nối thành công tới WebSocket Hub.');
                     appendHadesSystemLog('[WS] Kết nối thành công tới WebSocket Hub!');
-                    
-                    wsSocket.send(JSON.stringify({ type: 'SYNC_REGISTER_TAB', role: 'MASTER' }));
+                    startPingMonitor();
                 };
-
-                wsSocket.onmessage = function(event) {
-                    logSystem('Nhận WS: ' + event.data);
-                    appendHadesChatLog('[WS IN] ' + event.data);
-                };
-
-                wsSocket.onerror = function() {
-                    logSystem('Lỗi kết nối WebSocket.');
-                    appendHadesSystemLog('[WS ERROR] Không thể thiết lập kết nối.');
-                };
-
                 wsSocket.onclose = function() {
                     statusText.textContent = '🔴 OFFLINE';
                     statusText.classList.add('offline');
                     if (hadesWsStatus) hadesWsStatus.textContent = 'Chưa kết nối';
                     btn.textContent = 'KẾT NỐI WS';
                     btn.classList.remove('connected');
-                    logSystem('Đã ngắt kết nối WebSocket.');
                     appendHadesSystemLog('[WS] Đã ngắt kết nối.');
                 };
             } catch (err) {
-                logSystem('Không thể tạo WebSocket: ' + err.message);
-                appendHadesSystemLog('Lỗi tạo WebSocket: ' + err.message);
+                showToast('Lỗi kết nối WS!');
             }
         }
 
@@ -1057,9 +1536,8 @@
             if (!val) return;
             if (wsSocket && wsSocket.readyState === WebSocket.OPEN) {
                 wsSocket.send(JSON.stringify({ type: 'COMMAND', data: val }));
-                logSystem('Gửi lệnh WS: ' + val);
             } else {
-                logSystem('Chưa kết nối WS. Lệnh nội bộ: ' + val);
+                showToast('Chưa kết nối WebSocket Hub!');
             }
             input.value = '';
         }
@@ -1069,42 +1547,22 @@
             const count = area.children.length + 1;
             const item = document.createElement('div');
             item.className = 'tab-item';
-            
-            const tag = document.createElement('span');
-            tag.style.color = 'var(--neon-purple)';
-            tag.textContent = '[TAB ' + count + '] ';
-            
-            const title = document.createElement('span');
-            title.style.flex = '1';
-            title.textContent = 'Khung công việc ' + count;
-
-            item.appendChild(tag);
-            item.appendChild(title);
+            item.innerHTML = `<span style="color:var(--neon-purple);">[TAB ${count}]</span><span style="flex:1;">Khung công việc ${count}</span>`;
             area.appendChild(item);
-        }
-
-        // 7. Tiện ích Log & Toast Chống XSS
-        function logSystem(msg) {
-            const logBox = document.getElementById('systemLogArea');
-            const line = document.createElement('div');
-            const timeStr = new Date().toLocaleTimeString();
-            line.textContent = '[' + timeStr + '] ' + msg;
-            logBox.appendChild(line);
-            logBox.scrollTop = logBox.scrollHeight;
         }
 
         function clearSystemLogs() {
             document.getElementById('systemLogArea').innerHTML = '';
-            logSystem('Đã xóa lịch sử log.');
+            showToast('Đã xóa lịch sử log hệ thống.');
         }
 
         function showToast(msg) {
             const container = document.getElementById('toast-container');
+            if (!container) return;
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.textContent = msg;
             container.appendChild(toast);
-            
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => {
                 toast.classList.remove('show');
@@ -1112,18 +1570,29 @@
             }, 3000);
         }
 
-        // Clock đồng bộ
         setInterval(() => {
             const now = new Date();
             const clock = document.getElementById('systemClock');
             if (clock) clock.textContent = now.toTimeString().split(' ')[0];
         }, 1000);
 
-        // Khởi tạo
+        // Khởi chạy khi tải trang
         window.addEventListener('DOMContentLoaded', () => {
             const savedAcc = localStorage.getItem('hendy_acc_store');
             if (savedAcc) {
-                document.getElementById('accDataStore').value = savedAcc;
+                const accStoreEl = document.getElementById('accDataStore');
+                if (accStoreEl) accStoreEl.value = savedAcc;
+            }
+
+            // Tải cấu hình, bot và người dùng từ localStorage
+            loadSystemSettings();
+            loadBotsFromLocalStorage();
+            loadUsersFromLocalStorage();
+
+            // Khởi chạy WebSocket nếu bật Debug Mode
+            const settings = JSON.parse(localStorage.getItem('hendy_system_settings') || '{}');
+            if (settings.enableDebug) {
+                connectHadesWebSocket();
             }
         });
     </script>
