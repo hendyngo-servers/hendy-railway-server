@@ -8,31 +8,32 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
-let activeSlaves = new Map();
+const activeSlaves = new Map();
 
 app.use(express.json());
-app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 
-// API chuẩn hóa các khóa khớp hoàn toàn với script hiển thị trên Dashboard
+// 1. API cung cấp danh sách Tab/Bot cho Dashboard
 app.get('/api/slaves', (req, res) => {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     let slavesList = [];
     activeSlaves.forEach((client) => {
         slavesList.push({
             id: client.id,
-            name: client.name,
-            role: client.role,
-            channel: client.channel,
+            tên: client.name,
+            "vai trò": client.role,
+            kênh: client.channel,
             isOnLive: client.isOnLive,
             url: client.url,
-            lastSeen: client.lastSeen ? new Date(client.lastSeen).toLocaleTimeString('vi-VN') : ''
+            is_on_live: client.isOnLive,
+            "Thời gian nhìn thấy lần cuối": new Date(client.lastSeen).toLocaleTimeString('vi-VN')
         });
     });
     res.end(JSON.stringify(slavesList, null, 2));
 });
 
-// API điều khiển từ xa phát lệnh xuống các client
+// 2. API điều khiển từ xa
 app.get('/send-command', (req, res) => {
     const cmd = req.query.cmd || 'ĐIỂM DANH + SC88 +';
     let count = 0;
@@ -45,7 +46,7 @@ app.get('/send-command', (req, res) => {
     res.send(`🚀 Đã phát lệnh xuống thành công cho ${count} thiết bị/tab: [ ${cmd} ]`);
 });
 
-// Trang tổng đài Dashboard Cyberpunk
+// 3. Trang Dashboard Cyberpunk tích hợp sẵn script tự động cập nhật
 app.get('/dashboard', (req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(`
@@ -71,12 +72,11 @@ app.get('/dashboard', (req, res) => {
                     <h3>🕹️ Điều khiển Nhanh Tab / Bot</h3>
                     <button class="btn-action" onclick="sendCmd('ĐIỂM DANH + SC88 +')">Gửi Điểm Danh</button>
                     <button class="btn-action" onclick="sendCmd('SC88 + Xỉu + user123')">Gửi Kèo Xỉu</button>
-                    <button class="btn-action" onclick="location.href='/'">Đến Phòng Test Live Mock</button>
                 </div>
 
                 <div class="box">
                     <h3>📊 Thống kê mạng lưới Đàn Em (Slaves)</h3>
-                    <p>Tổng số thiết bị kết nối WebSocket: <span id="totalClients" style="color:#ffcc00;">0</span></p>
+                    <p>Tổng số thiết bị kết nối: <span id="totalClients" style="color:#ffcc00;">0</span></p>
                     <table>
                         <thead>
                             <tr>
@@ -92,10 +92,9 @@ app.get('/dashboard', (req, res) => {
                         </tbody>
                     </table>
                 </div>
-                <div style="font-size: 11px; color: #555;">Cyberpunk Core Engine v3.8 - Running on Port ${PORT}</div>
 
                 <script>
-                    async function fetchStatus() {
+                    async function fetchAndUpdateSlaves() {
                         try {
                             let res = await fetch('/api/slaves');
                             let data = await res.json();
@@ -108,8 +107,8 @@ app.get('/dashboard', (req, res) => {
                             tbody.innerHTML = data.map(s => \`
                                 <tr>
                                     <td>\${s.id}</td>
-                                    <td style="color:#00ffcc; font-weight:bold;">\${s.name}</td>
-                                    <td>\${s.channel} (\${s.role})</td>
+                                    <td style="color:#00ffcc; font-weight:bold;">\${s.tên}</td>
+                                    <td>\${s.kênh} (\${s["vai trò"] || s.role})</td>
                                     <td>\${s.isOnLive ? '<span style="color:#10b981">🟢 Đang Live</span>' : '<span style="color:#ef4444">🔴 Ngoại tuyến</span>'}</td>
                                     <td style="word-break:break-all; font-size:10px;"><a href="\${s.url}" target="_blank" style="color:#38bdf8;">\${s.url || 'N/A'}</a></td>
                                 </tr>
@@ -120,15 +119,15 @@ app.get('/dashboard', (req, res) => {
                         fetch('/send-command?cmd=' + encodeURIComponent(cmd))
                             .then(r => r.text()).then(msg => alert(msg));
                     }
-                    setInterval(fetchStatus, 3000);
-                    fetchStatus();
+                    setInterval(fetchAndUpdateSlaves, 3000);
+                    fetchAndUpdateSlaves();
                 </script>
             </body>
         </html>
     `);
 });
 
-// Thuật toán heartbeat dọn rác kết nối chết
+// 4. WebSocket Quản lý kết nối Slave
 const heartbeatInterval = setInterval(() => {
     wss.clients.forEach((ws) => {
         if (ws.isAlive === false) return ws.terminate();
@@ -139,14 +138,14 @@ const heartbeatInterval = setInterval(() => {
 
 wss.on('connection', (ws) => {
     ws.isAlive = true;
-    ws.on('pong', () => { ws.isAlive = true; });
-
     let currentSlaveId = null;
+
+    ws.on('pong', () => { ws.isAlive = true; });
 
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
-            if (!data || !data.action) return;
+            const now = Date.now();
 
             if (data.action === 'SYNC_REGISTER_TAB') {
                 currentSlaveId = data.value?.id || ('slave_' + Math.random().toString(36).substring(2, 8));
@@ -155,20 +154,20 @@ wss.on('connection', (ws) => {
                     ws: ws,
                     id: currentSlaveId,
                     name: data.value?.name || 'Khách',
-                    role: data.value?.role || 'FOLLOWER',
+                    role: data.value?.role || 'VIP_BOT',
                     channel: data.value?.channel || 'KENH-1',
                     isOnLive: 1,
                     url: '',
-                    lastSeen: Date.now()
+                    lastSeen: now
                 });
             } else if (data.action === 'SYNC_STATUS') {
-                currentSlaveId = data.slaveId || ws.slaveId;
-                if (currentSlaveId && activeSlaves.has(currentSlaveId)) {
-                    let slaveInfo = activeSlaves.get(currentSlaveId);
-                    slaveInfo.isOnLive = data.is_on_live;
-                    slaveInfo.url = data.url;
-                    slaveInfo.name = data.nickname || slaveInfo.name;
-                    slaveInfo.lastSeen = Date.now();
+                currentSlaveId = data.slaveId;
+                if (activeSlaves.has(currentSlaveId)) {
+                    let slave = activeSlaves.get(currentSlaveId);
+                    slave.name = data.nickname || slave.name;
+                    slave.isOnLive = data.is_on_live;
+                    slave.url = data.url;
+                    slave.lastSeen = now;
                 } else if (currentSlaveId) {
                     activeSlaves.set(currentSlaveId, {
                         ws: ws,
@@ -178,33 +177,28 @@ wss.on('connection', (ws) => {
                         channel: 'KENH-1',
                         isOnLive: data.is_on_live,
                         url: data.url,
-                        lastSeen: Date.now()
+                        lastSeen: now
                     });
                 }
-                ws.send(JSON.stringify({ status: 'OK', message: 'Sync received' }));
-            } else if (data.action === 'PING') {
-                ws.send(JSON.stringify({ action: 'PONG', time: Date.now() }));
-            } else {
-                wss.clients.forEach((client) => {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) {
-                        client.send(message.toString());
-                    }
-                });
             }
+
+            wss.clients.forEach((client) => {
+                if (client !== ws && client.readyState === WebSocket.OPEN) {
+                    client.send(message.toString());
+                }
+            });
         } catch (e) {
-            console.error('Lỗi phân tích WebSocket:', e);
+            console.error("Lỗi xử lý tin nhắn WebSocket:", e);
         }
     });
 
     ws.on('close', () => {
         if (ws.slaveId && activeSlaves.has(ws.slaveId)) {
             activeSlaves.delete(ws.slaveId);
-        } else if (currentSlaveId && activeSlaves.has(currentSlaveId)) {
-            activeSlaves.delete(currentSlaveId);
         }
     });
 });
 
 server.listen(PORT, () => {
-    console.log(`🚀 [HENDY SERVER HUB v3.8] Đang chạy tại cổng: ${PORT}`);
+    console.log(`🚀 [HENDY SERVER HUB] Đang chạy tại cổng: ${PORT}`);
 });
