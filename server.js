@@ -1,12 +1,7 @@
-/**
- * =====================================================================
- * ⚡ HENDY MASTER CENTRAL SERVER HUB & MOCK LIVE ENVIRONMENT (V3.8)
- * =====================================================================
- */
-
 const WebSocket = require('ws');
 const http = require('http');
 const express = require('express');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -15,14 +10,15 @@ const wss = new WebSocket.Server({ server });
 const PORT = process.env.PORT || 3000;
 let activeSlaves = new Map();
 
-// Phục vụ các file tĩnh (index.html) từ thư mục hiện tại
+app.use(express.json());
 app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// API cung cấp danh sách các Tab/Bot đang kết nối realtime lên Dashboard
+// API chuẩn hóa các khóa khớp hoàn toàn với script hiển thị trên Dashboard
 app.get('/api/slaves', (req, res) => {
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     let slavesList = [];
-    activeSlaves.forEach((client, id) => {
+    activeSlaves.forEach((client) => {
         slavesList.push({
             id: client.id,
             name: client.name,
@@ -30,17 +26,16 @@ app.get('/api/slaves', (req, res) => {
             channel: client.channel,
             isOnLive: client.isOnLive,
             url: client.url,
-            lastSeen: new Date(client.lastSeen).toLocaleTimeString('vi-VN')
+            lastSeen: client.lastSeen ? new Date(client.lastSeen).toLocaleTimeString('vi-VN') : ''
         });
     });
     res.end(JSON.stringify(slavesList, null, 2));
 });
 
-// API giao diện điều khiển từ xa để bấm gửi lệnh xuống tất cả các Bot/Tab đang mở
+// API điều khiển từ xa phát lệnh xuống các client
 app.get('/send-command', (req, res) => {
     const cmd = req.query.cmd || 'ĐIỂM DANH + SC88 +';
     let count = 0;
-    
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify({ action: `CHAT|${cmd}` }));
@@ -50,7 +45,7 @@ app.get('/send-command', (req, res) => {
     res.send(`🚀 Đã phát lệnh xuống thành công cho ${count} thiết bị/tab: [ ${cmd} ]`);
 });
 
-// Trang chủ Tổng đài Cyberpunk Dashboard kèm theo giao diện quản trị mạng lưới
+// Trang tổng đài Dashboard Cyberpunk
 app.get('/dashboard', (req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(`
@@ -133,7 +128,7 @@ app.get('/dashboard', (req, res) => {
     `);
 });
 
-// Thuật toán dọn rác Heartbeat định kỳ kiểm tra kết nối WebSocket sống/chết
+// Thuật toán heartbeat dọn rác kết nối chết
 const heartbeatInterval = setInterval(() => {
     wss.clients.forEach((ws) => {
         if (ws.isAlive === false) return ws.terminate();
@@ -142,83 +137,74 @@ const heartbeatInterval = setInterval(() => {
     });
 }, 30000);
 
-// Xử lý sự kiện kết nối WebSocket từ các Tab/Bot client
-wss.on('connection', (ws, req) => {
+wss.on('connection', (ws) => {
     ws.isAlive = true;
     ws.on('pong', () => { ws.isAlive = true; });
 
     let currentSlaveId = null;
-    console.log('🟢 Bot / Tab đã kết nối vào phòng test WebSocket!');
 
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
             if (!data || !data.action) return;
 
-            console.log('📥 Nhận từ Tab/Bot:', data);
-
-            switch (data.action) {
-                case 'SYNC_REGISTER_TAB':
-                    currentSlaveId = data.value?.id || ('slave_' + Math.random().toString(36).substring(2, 8));
-                    ws.slaveId = currentSlaveId;
+            if (data.action === 'SYNC_REGISTER_TAB') {
+                currentSlaveId = data.value?.id || ('slave_' + Math.random().toString(36).substring(2, 8));
+                ws.slaveId = currentSlaveId;
+                activeSlaves.set(currentSlaveId, {
+                    ws: ws,
+                    id: currentSlaveId,
+                    name: data.value?.name || 'Khách',
+                    role: data.value?.role || 'FOLLOWER',
+                    channel: data.value?.channel || 'KENH-1',
+                    isOnLive: 1,
+                    url: '',
+                    lastSeen: Date.now()
+                });
+            } else if (data.action === 'SYNC_STATUS') {
+                currentSlaveId = data.slaveId || ws.slaveId;
+                if (currentSlaveId && activeSlaves.has(currentSlaveId)) {
+                    let slaveInfo = activeSlaves.get(currentSlaveId);
+                    slaveInfo.isOnLive = data.is_on_live;
+                    slaveInfo.url = data.url;
+                    slaveInfo.name = data.nickname || slaveInfo.name;
+                    slaveInfo.lastSeen = Date.now();
+                } else if (currentSlaveId) {
                     activeSlaves.set(currentSlaveId, {
                         ws: ws,
                         id: currentSlaveId,
-                        name: data.value?.name || 'Khách',
-                        role: data.value?.role || 'FOLLOWER',
-                        channel: data.value?.channel || 'KENH-1',
-                        isOnLive: 0,
-                        url: '',
+                        name: data.nickname || 'Unknown',
+                        role: 'VIP_BOT',
+                        channel: 'KENH-1',
+                        isOnLive: data.is_on_live,
+                        url: data.url,
                         lastSeen: Date.now()
                     });
-                    console.log(`[REGISTER] Tab đăng ký: ID = ${currentSlaveId}`);
-                    break;
-
-                case 'SYNC_STATUS':
-                    if (data.slaveId && activeSlaves.has(data.slaveId)) {
-                        let slaveInfo = activeSlaves.get(data.slaveId);
-                        slaveInfo.isOnLive = data.is_on_live;
-                        slaveInfo.url = data.url;
-                        slaveInfo.name = data.nickname || slaveInfo.name;
-                        slaveInfo.lastSeen = Date.now();
+                }
+                ws.send(JSON.stringify({ status: 'OK', message: 'Sync received' }));
+            } else if (data.action === 'PING') {
+                ws.send(JSON.stringify({ action: 'PONG', time: Date.now() }));
+            } else {
+                wss.clients.forEach((client) => {
+                    if (client !== ws && client.readyState === WebSocket.OPEN) {
+                        client.send(message.toString());
                     }
-                    ws.send(JSON.stringify({ status: 'OK', message: 'Sync received' }));
-                    break;
-
-                case 'PING':
-                    ws.send(JSON.stringify({ action: 'PONG', time: Date.now() }));
-                    break;
-
-                default:
-                    if (data.action !== 'SYNC_PING_REQUEST') {
-                        console.log(`[PHÁT LỆNH] Lệnh: ${data.action}`);
-                    }
-                    wss.clients.forEach((client) => {
-                        if (client !== ws && client.readyState === WebSocket.OPEN) {
-                            client.send(message.toString());
-                        }
-                    });
-                    break;
+                });
             }
         } catch (e) {
-            console.error('Lỗi parse message:', e);
+            console.error('Lỗi phân tích WebSocket:', e);
         }
     });
 
     ws.on('close', () => {
         if (ws.slaveId && activeSlaves.has(ws.slaveId)) {
             activeSlaves.delete(ws.slaveId);
-            console.log(`[NGẮT KẾT NỐI] Đã xóa Tab Slave: ${ws.slaveId}`);
-        } else {
-            console.log('🔴 Tab đã ngắt kết nối WebSocket.');
+        } else if (currentSlaveId && activeSlaves.has(currentSlaveId)) {
+            activeSlaves.delete(currentSlaveId);
         }
     });
 });
 
-wss.on('close', () => {
-    clearInterval(heartbeatInterval);
-});
-
 server.listen(PORT, () => {
-    console.log(`🚀 [HENDY SERVER HUB] Đang chạy tại cổng: ${PORT}`);
+    console.log(`🚀 [HENDY SERVER HUB v3.8] Đang chạy tại cổng: ${PORT}`);
 });
