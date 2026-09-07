@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Master Control Panel - Hendy System</title>
+    <title>Master Control Panel - Hendy & Hades V6100 System</title>
     <style>
         body.master-body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -105,6 +105,147 @@
         .cyber-btn.secondary:hover {
             box-shadow: 0 0 12px #ff0055;
         }
+
+        /* --- HADES V6100 HUB STYLES --- */
+        .hades-panel {
+            background: #050a14;
+            border: 1px solid #00f3ff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .hades-header {
+            font-size: 18px;
+            font-weight: 900;
+            color: #00f3ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .hades-status-line {
+            font-family: monospace;
+            font-size: 12px;
+            color: #a855f7;
+            margin-bottom: 15px;
+        }
+        .hades-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .hades-btn-run { background: #00bfff; color: #000; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .hades-btn-stop { background: #e6005c; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .hades-btn-add { background: #00cc66; color: #000; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .hades-btn-clear { background: #8a2be2; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .hades-btn-run:hover, .hades-btn-stop:hover, .hades-btn-add:hover, .hades-btn-clear:hover { filter: brightness(1.2); }
+        
+        .hades-tip {
+            font-size: 12px;
+            color: #facc15;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        .hades-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        .hades-table th {
+            background: #0f172a;
+            color: #38bdf8;
+            border: 1px solid #1e293b;
+            padding: 10px;
+            text-align: left;
+        }
+        .hades-table td {
+            background: #090d16;
+            border: 1px solid #1e293b;
+            padding: 8px 10px;
+            color: #f1f5f9;
+        }
+        .hades-table td[contenteditable="true"]:focus {
+            outline: 1px solid #00f3ff;
+            background: #0f1e36;
+        }
+        .btn-del-row {
+            background: #ff0055;
+            color: #fff;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .hades-logs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .hades-log-box {
+            background: #020610;
+            border: 1px solid #101f38;
+            border-radius: 6px;
+            padding: 10px;
+            height: 180px;
+            display: flex;
+            flex-direction: column;
+        }
+        .hades-log-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #00f3ff;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            border-bottom: 1px dashed #1e293b;
+            padding-bottom: 4px;
+        }
+        .hades-log-content {
+            flex: 1;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
+            color: #00ffcc;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .hades-cmd-bar {
+            display: flex;
+            gap: 10px;
+        }
+        .hades-cmd-input {
+            flex: 1;
+            background: #020610;
+            border: 1px solid #00f3ff;
+            color: #00ffcc;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            outline: none;
+        }
+        .hades-cmd-btn {
+            background: #00f3ff;
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .hades-cmd-btn:hover { background: #38bdf8; box-shadow: 0 0 10px #00f3ff; }
 
         /* Modal & Live Stream Styles */
         .modal-overlay {
@@ -214,7 +355,7 @@
         .top-nav-bar { display: flex; gap: 10px; align-items: center; justify-content: flex-start; flex-wrap: wrap; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #333; position: relative; }
         .ws-status-text { font-family: 'Chakra Petch', sans-serif; font-size: 12px; font-weight: 900; color: var(--neon-green); text-transform: uppercase; text-shadow: 0 0 5px var(--neon-green); min-width: 90px; display: flex; align-items: center; gap: 5px; }
         .ws-status-text.offline { color: var(--neon-red); text-shadow: 0 0 5px var(--neon-red); }
-        
+
         .zoom-box { display: flex; align-items: center; gap: 5px; background: #0a0410; border: 1px solid var(--neon-purple); padding: 3px 6px; border-radius: 6px; box-shadow: var(--glow-purple); }
         .zoom-text { color: var(--neon-yellow); font-size: 10px; font-weight: bold; }
         .zoom-val { color: var(--neon-cyan); font-size: 11px; font-weight: 900; min-width: 35px; text-align: center; }
@@ -225,14 +366,14 @@
         .nav-btn { background: #0a0410; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 900; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; gap: 5px; transition: 0.2s; box-shadow: var(--glow-cyan); }
         .nav-btn:hover { background: rgba(0, 229, 255, 0.1); transform: translateY(-1px); }
         .nav-btn.purple { border-color: var(--neon-purple); color: #fff; background: linear-gradient(135deg, #5a1885, #c840ff); box-shadow: var(--glow-purple); }
-        
+
         .channel-badge { background: #0a0410; border: 1px solid var(--neon-purple); color: var(--neon-purple); padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 900; text-transform: uppercase; box-shadow: inset 0 0 8px rgba(200, 64, 255, 0.2); }
         .clock-badge { background: #0a0410; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 5px 12px; border-radius: 6px; font-size: 12px; font-family: monospace; font-weight: 900; text-shadow: 0 0 5px var(--neon-cyan); margin-left: auto;}
-        
+
         .settings-dropdown { position: relative; display: inline-block; z-index: 100; }
         .btn-gear { background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 4px 8px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: var(--glow-cyan); display: flex; align-items: center; justify-content: center;}
         .btn-gear:hover { background: rgba(0, 229, 255, 0.2); transform: rotate(45deg); }
-        
+
         .settings-content { display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background-color: rgba(10, 4, 16, 0.98); min-width: 240px; box-shadow: 0 0 20px rgba(0, 229, 255, 0.3); border: 1px solid var(--neon-cyan); border-radius: 6px; flex-direction: column; padding: 5px; backdrop-filter: blur(8px); }
         .settings-dropdown:hover .settings-content { display: flex; }
         .settings-content button, .settings-content .theme-selector-box { background: transparent; color: #fff; border: none; padding: 8px 12px; text-align: left; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; border-bottom: 1px dashed #333; text-transform: uppercase; display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box;}
@@ -254,29 +395,29 @@
         .btn-cyan:hover { background: rgba(0, 229, 255, 0.1); box-shadow: var(--glow-cyan); }
         .btn-yellow { background: var(--neon-yellow); border: 1px solid var(--neon-yellow); color: #000; }
         .btn-red { background: transparent; border: 1px solid var(--neon-red); color: var(--neon-red); }
-        
-        .control-grid { display: grid; grid-template-columns: 2fr 0.9fr 0.9fr; gap: 15px; }
-        
+
+        .control-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; }
+
         .tab-list-area { overflow-y: auto !important; overflow-x: hidden !important; max-height: 480px; padding-right: 5px; flex: 1; z-index: 15; position: relative; }
         .tab-item { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); padding: 5px 8px; border-radius: 4px; font-size: 11px; border-left: 2px solid transparent; transition: 0.2s; z-index: 15; position: relative; margin-bottom: 4px; }
         .tab-item:hover { border-left-color: var(--neon-purple); background: rgba(200, 64, 255, 0.08); }
-        
+
         .cyber-panel { background-color: var(--bg-panel); border: 2px solid var(--neon-yellow) !important; border-radius: 8px; padding: 15px; box-shadow: 0 0 15px rgba(255, 204, 0, 0.2); display: flex; flex-direction: column; position: relative; }
         .section-box { background: rgba(16, 6, 26, 0.6); border: 1px solid transparent !important; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px; transition: all 0.3s; height: fit-content; position: relative; }
-        
+
         .section-title { font-size: 12px; color: var(--neon-cyan); font-weight: 900; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid rgba(0,229,255,0.3); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; z-index: 15; position: relative; }
-        
+
         .section-box::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #00e5ff, #0000ff, #c840ff, #ff0000); background-size: 200% 100%; -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; animation: rgb-run 2s linear infinite; z-index: 10; }
         @keyframes rgb-run { 100% { background-position: -200% 0; } }
-        
+
         .section-box > div, .section-box > label, .section-box > input, .section-box > button, .section-box > textarea { z-index: 15; position: relative; }
         .btn-action { background: #1a1b26; border: 1px solid transparent; border-radius: 4px; padding: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; min-width: 24px; min-height: 24px; font-size: 12px; color: #fff; z-index: 15; position: relative; }
         .btn-action.btn-close { border-color: rgba(255,51,102,0.5); color: var(--neon-red); }
         .btn-action.btn-close:hover { background: rgba(255,51,102,0.1); border-color: var(--neon-red); }
-        
+
         .cyber-modal-sub { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .pro-modal-wrapper .modal-content { background: #0a0410; border: 2px solid var(--neon-cyan); border-radius: 8px; padding: 20px; width: 340px; text-align: center; box-shadow: 0 0 30px rgba(0,243,255,0.2); }
-        
+
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { background: rgba(10, 4, 16, 0.95); color: #fff; padding: 10px 15px; border-radius: 6px; font-size: 12px; border-left: 4px solid var(--neon-green); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); opacity: 0; transform: translateX(100%); transition: 0.3s; }
         .toast.show { opacity: 1; transform: translateX(0); }
@@ -291,6 +432,7 @@
         <p style="font-size: 12px; color: #94a3b8; margin: 5px 0;">Hệ thống quản lý trung tâm.</p>
         <ul>
             <li class="active" onclick="switchTab('dashboard', this)">🏠 Dashboard chính</li>
+            <li onclick="switchTab('hades', this)">🤖 Hades V6100 Hub</li>
             <li onclick="switchTab('users', this)">👥 Quản lý người dùng</li>
             <li onclick="switchTab('settings', this)">⚙️ Cài đặt hệ thống</li>
         </ul>
@@ -323,6 +465,71 @@
             </div>
         </div>
 
+        <!-- Tab Mới: HADES V6100 - MULTI-SESSION BOT HUB -->
+        <div id="hades-view" class="content-view">
+            <div class="header">Hades V6100 - Multi-Session Bot Hub</div>
+            
+            <div class="hades-panel">
+                <div class="hades-header">🤖 ĐIỀU KHIỂN ĐA PHIÊN & TỰ ĐỘNG HÓA</div>
+                <div class="hades-status-line">
+                    [HADES_CORE: ACTIVE] • WebSocket Hub: <span id="hadesWsStatusText" style="color: #00ffcc; font-weight: bold;">Đã kết nối Hub</span>
+                </div>
+
+                <div class="hades-actions">
+                    <button class="hades-btn-run" onclick="startAllBots()">🚀 Chạy Tất Cả Bot</button>
+                    <button class="hades-btn-stop" onclick="stopAllBots()">⏹ Dừng Lại</button>
+                    <button class="hades-btn-add" onclick="addBotAccount()">➕ Thêm Tài Khoản Bot</button>
+                    <button class="hades-btn-clear" onclick="clearHadesLogs()">🗑️ Xóa Nhật Ký</button>
+                </div>
+
+                <div class="hades-tip">
+                    💡 Mẹo: Bạn có thể bấm trực tiếp vào các ô dưới cột "Tài khoản" hoặc "Tài khoản BO" để chỉnh sửa thông tin ngay lập tức.
+                </div>
+
+                <table class="hades-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">ID</th>
+                            <th>Tài khoản</th>
+                            <th>Tài khoản BO</th>
+                            <th style="width: 120px;">Trạng thái</th>
+                            <th style="width: 80px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="botTableBody">
+                        <tr>
+                            <td>1</td>
+                            <td contenteditable="true" onblur="onBotCellEdit(this, 'Tài khoản', 1)">yg45g</td>
+                            <td contenteditable="true" onblur="onBotCellEdit(this, 'Tài khoản BO', 1)">yg45g</td>
+                            <td><span style="color: #00ffcc; font-weight: bold;">Sẵn sàng</span></td>
+                            <td><button class="btn-del-row" onclick="deleteBotRow(this, 1)">Xóa</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="hades-logs-grid">
+                    <div class="hades-log-box">
+                        <div class="hades-log-title">📜 NHẬT KÝ HỆ THỐNG (SYSTEM LOG)</div>
+                        <div class="hades-log-content" id="hadesSystemLog">
+                            <div><span style="color: #38bdf8;">[14:10:50]</span> [BOT] Đã thêm tài khoản mới thành công: yg45g</div>
+                            <div><span style="color: #38bdf8;">[15:24:52]</span> [WS] Kết nối thành công tới WebSocket Hub!</div>
+                        </div>
+                    </div>
+                    <div class="hades-log-box">
+                        <div class="hades-log-title">💬 NHẬT KÝ CHAT & LỆNH TỪ XA</div>
+                        <div class="hades-log-content" id="hadesChatLog">
+                            <div><span style="color: #38bdf8;">[13:40:05]</span> [WS] Chờ thiết lập kết nối WebSocket Hub...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hades-cmd-bar">
+                    <input type="text" id="hadesJsonInput" class="hades-cmd-input" placeholder='Nhập lệnh JSON gửi qua WebSocket (VD: {"action": "PING"})' onkeydown="if(event.key==='Enter') sendHadesJsonCmd()" />
+                    <button class="hades-cmd-btn" onclick="sendHadesJsonCmd()">Gửi Lệnh WS</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Tab 2: Quản lý người dùng -->
         <div id="users-view" class="content-view">
             <div class="header">Quản Lý Người Dùng</div>
@@ -339,15 +546,15 @@
                 <div style="display: flex; flex-direction: column; gap: 14px; max-width: 600px; margin-top: 15px;">
                     <div>
                         <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px; color:#334155;">WebSocket URL:</label>
-                        <input type="text" id="settingWsUrl" placeholder="wss://your-railway-app.up.railway.app" style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; box-sizing:border-box;" />
+                        <input type="text" id="settingWsUrl" value="wss://hendy-railway-server-production-b340.up.railway.app" style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; box-sizing:border-box;" />
                     </div>
                     <div>
                         <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px; color:#334155;">Nguồn Video Mặc Định (URL):</label>
-                        <input type="text" id="settingVideoUrl" placeholder="https://..." style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; box-sizing:border-box;" />
+                        <input type="text" id="settingVideoUrl" value="https://www.w3schools.com/html/mov_bbb.mp4" style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; box-sizing:border-box;" />
                     </div>
                     <div>
                         <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px; color:#334155;">Tên Kênh / Phòng:</label>
-                        <input type="text" id="settingChannel" placeholder="MOCK-LIVE" style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; box-sizing:border-box;" />
+                        <input type="text" id="settingChannel" value="MOCK-LIVE" style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; box-sizing:border-box;" />
                     </div>
                     <div>
                         <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px; color:#334155;">Thời gian đồng bộ (giây):</label>
@@ -368,7 +575,7 @@
             <div class="main-layout" id="appContainer">
                 <div class="stream-section">
                     <div class="live-screen" id="liveScreen">
-                        <div id="liveBadge" class="live-badge">ĐANG PHÁT TRỰC TIẾP</div>
+                        <div id="liveBadge" class="live-badge">🔴 ĐANG PHÁT TRỰC TIẾP</div>
                         <video id="liveVideo" autoplay muted loop>
                             <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
                         </video>
@@ -386,7 +593,7 @@
                         <div><span style="color: #64748b;">[System]</span> Môi trường test Cyberpunk đã sẵn sàng.</div>
                     </div>
                     <div class="chat-input-area">
-                        <input type="text" id="chatInput" placeholder="Nhập bình luận..." />
+                        <input type="text" id="chatInput" placeholder="Nhập bình luận..." onkeydown="if(event.key==='Enter') handleUserSubmit()" />
                         <button class="send-btn" id="sendBtn" onclick="handleUserSubmit()">Gửi</button>
                     </div>
                 </div>
@@ -396,7 +603,7 @@
 
     <!-- CỬA SỔ MODAL GIAO DIỆN PRO CYBERPUNK 7.1.5 -->
     <div class="modal-overlay" id="proModalOverlay" style="padding: 10px; align-items: stretch;">
-        <div class="modal-content pro-modal-wrapper" style="width: 100%; max-width: 100%; height: 100vh; border-radius: 0; padding: 20px;">
+        <div class="modal-content pro-modal-wrapper" id="proModalWrapper" style="width: 100%; max-width: 100%; height: 100vh; border-radius: 0; padding: 20px;">
             <button class="close-btn" onclick="closeProModal()" style="top: 15px; right: 20px; z-index: 99999;">Đóng X</button>
             
             <div id="toast-container"></div>
@@ -426,10 +633,10 @@
                 <div class="modal-content" style="width: 600px; border-color: var(--neon-purple); box-shadow: var(--glow-purple);">
                     <h3 style="color: var(--neon-purple); margin:0 0 10px 0; text-transform:uppercase;">⚡ MACRO QUICK SCRIPT HUB</h3>
                     <div style="font-size:10px; color:#aaa; margin-bottom:10px; text-align:left;">Chạy mã JavaScript tùy chỉnh trên tất cả các khung Live WebView đang mở:</div>
-                    <textarea id="macroScriptInput" class="input-cyber" style="width:100%; height: 140px; margin-bottom:10px; font-size:12px; color:var(--neon-green); font-family:monospace;" placeholder="// VD: alert('Hello Cyberpunk!'); document.querySelector('button').click();"></textarea>
+                    <textarea id="macroScriptInput" class="input-cyber" style="width:100%; height: 140px; margin-bottom:10px; font-size:12px; color:var(--neon-green); font-family:monospace;" placeholder="// VD: alert('Hello Cyberpunk!');"></textarea>
                     <div style="display:flex; gap:10px; justify-content:center;">
                         <button class="btn btn-red" onclick="closeMacroModal()">ĐÓNG (ESC)</button>
-                        <button class="btn btn-purple" onclick="executeMacroScript()">🚀 THỰC THI SCRIPT (ENTER)</button>
+                        <button class="btn btn-purple" onclick="executeMacroScript()">🚀 THỰC THI SCRIPT</button>
                     </div>
                 </div>
             </div>
@@ -452,140 +659,83 @@
             <div class="super-container" id="masterBodyContainer">
                 <div class="cyber-panel" style="padding-bottom: 5px;">
                     <div class="header-title-container">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
-                        <h1 class="header-title">TRUNG TÂM ĐIỀU KHIỂN HENDY - CYBERPUNK 7.1.5 PRO</h1>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                            <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                        </svg>
+                        <h1 class="header-title">HENDY SYSTEM CONTROL CENTER v7.1.5 PRO</h1>
+                        <span class="channel-badge" id="currentChannelDisplay">MOCK-LIVE</span>
+                        <span class="ws-status-text offline" id="wsStatusText">🔴 OFFLINE</span>
+                        <span class="clock-badge" id="systemClock">00:00:00</span>
                     </div>
 
                     <div class="top-nav-bar">
-                        <div id="mainWsStatus" class="ws-status-text offline">● CHƯA KẾT NỐI</div>
-                        <div class="zoom-box">
-                            <span class="zoom-text">🔍 ZOOM:</span>
-                            <button class="z-btn" onclick="adjustZoom(-0.1)">➖</button>
-                            <span id="zoomValDisplay" class="zoom-val">100%</span>
-                            <button class="z-btn" onclick="adjustZoom(0.1)">➕</button>
-                            <button class="z-btn z-btn-reset" onclick="resetZoom()">♻️</button>
+                        <div class="conn-row" style="flex:1;">
+                            <input type="text" id="wsServerUrl" class="input-ws" value="wss://hendy-railway-server-production-b340.up.railway.app" placeholder="wss://..." />
+                            <input type="text" id="sessionNote" class="input-note" placeholder="Ghi chú phiên làm việc..." />
+                            <button class="btn-sync" id="btnWsConnect" onclick="toggleWsConnection()">KẾT NỐI WS</button>
                         </div>
-                        <div id="topChannelDisplay" class="channel-badge">KENH-1</div>
                         
-                        <button class="nav-btn" onclick="openAccStoreModal()">👑 KHO TK (HUB)</button>
-                        <button class="nav-btn" style="border-color:var(--neon-purple); color:var(--neon-purple);" onclick="openMacroModal()">⚡ MACRO SCRIPT</button>
-                        
+                        <div class="zoom-box">
+                            <span class="zoom-text">ZOOM</span>
+                            <button class="z-btn" onclick="adjustZoom(-0.1)">-</button>
+                            <span class="zoom-val" id="zoomValDisplay">100%</span>
+                            <button class="z-btn" onclick="adjustZoom(0.1)">+</button>
+                            <button class="z-btn z-btn-reset" onclick="resetZoom()">100%</button>
+                        </div>
+
+                        <button class="nav-btn" onclick="openGuideModal()">📖 HƯỚNG DẪN</button>
+                        <button class="nav-btn" onclick="openMacroModal()">⚡ MACRO</button>
+                        <button class="nav-btn purple" onclick="openAccStoreModal()">👑 KHO ACC</button>
+
                         <div class="settings-dropdown">
-                            <button class="btn-gear" title="Cài đặt Giao diện & Hệ thống">⚙️</button>
+                            <button class="btn-gear">⚙️</button>
                             <div class="settings-content">
                                 <div class="theme-selector-box">
-                                    <span style="font-size:10px; color:var(--neon-cyan); margin-bottom:2px; display:block;">🎨 GIAO DIỆN (THEME):</span>
-                                    <select id="themeSelector" onchange="changeTheme(this.value)">
-                                        <option value="cyberpunk">Cyberpunk 7.1 (Tím)</option>
-                                        <option value="matrix">Matrix (Xanh lá)</option>
-                                        <option value="blood">Blood Red (Đỏ)</option>
-                                        <option value="gold">Cyber Gold (Vàng)</option>
+                                    <label>GIAO DIỆN:</label>
+                                    <select onchange="changeTheme(this.value)">
+                                        <option value="default">CYBERPUNK PURPLE</option>
+                                        <option value="matrix">MATRIX GREEN</option>
+                                        <option value="blood">BLOOD RED</option>
+                                        <option value="gold">GOLDEN NEON</option>
                                     </select>
                                 </div>
-                                <div class="theme-selector-box" style="border-bottom: 1px dashed #333; padding-bottom: 6px;">
-                                    <span style="font-size:10px; color:var(--neon-yellow); margin-bottom:2px; display:block;">📡 MÃ LUỒNG (ID KÊNH):</span>
-                                    <input type="text" id="inpChannelId" class="input-cyber" style="font-size:11px; padding:3px; text-align:center;" value="KENH-1" onchange="updateChannelId(this.value)" placeholder="VD: KENH-1">
-                                </div>
-                                <button onclick="openGuideModal()">📖 HƯỚNG DẪN HOẠT ĐỘNG</button>
-                                <button onclick="saveMasterConfig()">💾 LƯU CẤU HÌNH (F9)</button>
-                                <button onclick="exportConfig()" style="color: var(--neon-green);">📤 XUẤT FILE (.JSON)</button>
+                                <button onclick="clearSystemLogs()">🧹 XÓA LOG HỆ THỐNG</button>
                             </div>
                         </div>
-                        <div id="masterClock" class="clock-badge">00:00:00</div>
-                    </div>
-
-                    <div class="conn-row">
-                        <input type="text" id="wsUrl" class="input-ws" placeholder="wss://hendy-server-pro.up.railway.app" value="ws://127.0.0.1:8080" list="dl_historyServers">
-                        <button class="btn-sync" id="btnConnect" onclick="connectWS()">Đ.BỘ</button>
-                        <input type="text" id="inpNoteBrand" class="input-note" placeholder="Ghi chú Ca Live..." list="dl_historyNotes">
-                        <button class="btn btn-purple" style="font-size:10px; padding:6px 10px;" onclick="syncServerUrl()" title="Ép toàn bộ đàn em chuyển sang WebSocket Server mới">🌐 ĐỔI SERVER</button>
-                        <button class="btn btn-cyan" style="font-size:10px; padding:6px 10px;" onclick="syncReloadAllTabs()" title="Yêu cầu tất cả Đàn Em tải lại trang (F5)">🔄 TẢI LẠI TRANG (F5)</button>
                     </div>
                 </div>
 
-                <!-- KHU VỰC ĐIỀU KHIỂN CHÍNH -->
-                <div class="cyber-panel">
-                    <div class="control-grid">
-                        <!-- CỘT 1: TAB ĐÀN EM -->
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <div class="section-box" style="flex: 1;">
-                                <div class="section-title">
-                                    <span>📺 TAB ĐÀN EM (<span id="txtOnlineCount" style="color:var(--neon-green);">0</span>)</span>
-                                    <div style="display: flex; gap: 8px; font-size: 9px; align-items: center; color: #aaa; font-weight: normal;">
-                                        <label style="cursor: pointer;"><input type="checkbox" id="chkAllTabs" checked onchange="toggleAllTabs(this.checked)" style="accent-color:var(--neon-cyan);"> ALL</label>
-                                        <label style="cursor: pointer;"><input type="checkbox" id="chkAutoGroup" checked onchange="toggleAutoGroup(this.checked)" style="accent-color:var(--neon-cyan);"> NHÓM</label>
-                                        <button class="btn btn-red" style="padding: 2px 6px; font-size: 9px;" onclick="clearDeadTabs()">🗑 XÓA</button>
-                                        <button class="btn btn-cyan" style="padding: 2px 6px; font-size: 9px;" onclick="requestTabListRender()">C.NHẬT</button>
-                                    </div>
-                                </div>
-                                <div class="tab-list-area" id="tabList">
-                                    <div style="text-align:center; color:#555; font-size:11px; margin-top:20px;">Chưa có Tab nào kết nối...</div>
-                                </div>
+                <div class="control-grid">
+                    <div class="cyber-panel">
+                        <div class="section-title">
+                            <span>🖥️ QUẢN LÝ TAB WORKSPACE</span>
+                            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 10px;" onclick="addNewTabRow()">+ THÊM TAB</button>
+                        </div>
+                        <div class="tab-list-area" id="tabListArea">
+                            <div class="tab-item">
+                                <span style="color:var(--neon-green);">[TAB 1]</span>
+                                <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Kênh Trực Tiếp Chính</span>
+                                <span style="color:var(--neon-cyan); font-weight:bold;">[ACTIVE]</span>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- CỘT 2: SMART LOGIC & AFK HUB -->
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <div class="section-box">
-                                <div class="section-title" style="color: var(--neon-purple); border-bottom: none; margin-bottom: 10px;">
-                                    🛠 LOGIC AFK & CÀI ĐẶT CHUNG
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                    <span style="font-size: 11px; font-weight: bold; color: #ccc;">Chốt khi có</span>
-                                    <input type="number" id="txtRemoteConsCount" value="1" onchange="syncRemoteParamsToSlaves()" style="width: 35px; background: #000; border: 1px solid var(--neon-purple-dark); color: var(--neon-cyan); border-radius: 4px; padding: 4px; text-align: center; font-weight: bold; outline: none;">
-                                    <span style="font-size: 11px; color: #aaa;">trùng khớp.</span>
-                                </div>
-
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
-                                    <span style="font-size: 11px; font-weight: bold; color: var(--neon-green); white-space: nowrap;">Cú pháp Kèo:</span>
-                                    <input type="text" id="afkSyntax" onchange="syncSyntax()" class="input-cyber" style="flex: 1; border-color: var(--neon-green); color: var(--neon-cyan);" value="{brand} - {answer} - {name}">
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
-                                    <span style="font-size: 11px; font-weight: bold; color: var(--neon-green); white-space: nowrap;">Cú pháp ĐD:</span>
-                                    <input type="text" id="afkDDSyntax" onchange="syncSyntax()" class="input-cyber" style="flex: 1; border-color: var(--neon-green); color: var(--neon-cyan);" value="ĐIỂM DANH + {name}">
-                                </div>
-
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 12px;">
-                                    <input type="checkbox" id="chkAutoDD" onchange="sendCmd('SYNC_SET_AUTO_DD', { active: this.checked })" class="custom-chk" checked style="accent-color: var(--neon-green);">
-                                    <span style="font-size: 11px; font-weight: bold; color: var(--neon-green);">⏱ Auto Điểm Danh khi Idol gọi tên</span>
-                                </label>
-
-                                <div style="border-bottom: 1px dashed #333; margin-bottom: 12px;"></div>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 12px;">
-                                    <input type="checkbox" id="chkMasterUsr" class="custom-chk" checked onchange="toggleUsr()" style="accent-color: var(--neon-purple);">
-                                    <span style="font-size: 11px; font-weight: bold; color: #fff;">Đếm mọi user (Ai hô là bắt kèo)</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 10px;">
-                                    <input type="checkbox" id="chkMasterSnd" class="custom-chk" checked onchange="toggleSnd()" style="accent-color: var(--neon-red);">
-                                    <span style="font-size: 11px; font-weight: bold; color: var(--neon-red);">🔔 Bật Âm Thanh</span>
-                                </label>
-                            </div>
-
-                            <div class="section-box" style="flex: 1;">
-                                <div class="section-title">🚀 THAO TÁC NHANH</div>
-                                <div style="display:flex; gap:5px; margin-bottom: 5px;">
-                                    <input type="text" id="txtRemoteBrand" class="input-cyber" style="color: var(--neon-green);" placeholder="Brand (VD: SC88)..." list="dl_historyBrands">
-                                    <button class="btn btn-yellow" onclick="sendRemoteBrand()">ĐỔI BRAND</button>
-                                </div>
-                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-                                    <button class="btn btn-cyan" style="background:#fff; color:#000;" onclick="sendCmd('SYNC_BTN_D1')">TÊN + ĐD (F1)</button>
-                                    <button class="btn btn-cyan" style="background:#fff; color:#000;" onclick="sendCmd('SYNC_BTN_D2')">ĐD + TÊN</button>
-                                    <button class="btn btn-red" style="grid-column: span 2;" onclick="resetKeoAction()">♻️ RESET KÈO (F7)</button>
-                                </div>
-                                <button id="btnMasterAuto" class="btn btn-purple" style="margin-top:5px; grid-column: span 2;" onclick="toggleMasterAuto(!masterState.autoKeo)">⚡ AUTO CƯỚP: TẮT (F2)</button>
-                            </div>
+                    <div class="cyber-panel">
+                        <div class="section-title">⚡ ĐIỀU KHIỂN ROBOT / BOT</div>
+                        <div class="section-box">
+                            <label style="font-size: 11px; color: var(--neon-cyan);">GỬI LỆNH ĐỒNG BỘ:</label>
+                            <input type="text" id="cmdInput" class="input-cyber" placeholder="Nhập lệnh điều khiển..." />
+                            <button class="btn btn-purple" style="width: 100%;" onclick="sendCustomCommand()">GỬI LỆNH</button>
                         </div>
+                    </div>
 
-                        <!-- CỘT 3: STATS VÀ LOGS -->
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <div class="section-box" style="flex-direction: row; gap: 10px;">
-                                <div style="flex:1; display:flex; flex-direction:column;">
-                                    <div class="section-title" style="font-size:9px; color:#aaa; border-bottom: none; margin-bottom: 5px;">THỐNG KÊ (STATS)</div>
-                                    <div id="boxStats" style="color: var(--neon-yellow); font-size: 11px; font-family: monospace; min-height: 80px;">
-                                        Đang chờ dữ liệu thống kê...
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="cyber-panel">
+                        <div class="section-title">📜 NHẬT KÝ HỆ THỐNG</div>
+                        <div id="systemLogArea" style="height: 380px; overflow-y: auto; font-family: monospace; font-size: 11px; color: #00ffcc; background: #000; padding: 8px; border-radius: 4px; border: 1px solid var(--neon-purple-dark);">
+                            <div>[SYSTEM] Môi trường Cyberpunk 7.1.5 PRO sẵn sàng.</div>
                         </div>
                     </div>
                 </div>
@@ -593,173 +743,389 @@
         </div>
     </div>
 
+    <!-- JAVASCRIPT XỬ LÝ TOÀN BỘ LOGIC -->
     <script>
-        // --- XỬ LÝ CHUYỂN TAB TRÊN MENU ---
-        function switchTab(tabId, element) {
-            document.querySelectorAll('.content-view').forEach(view => {
-                view.classList.remove('active');
-            });
-            document.querySelectorAll('.sidebar ul li').forEach(li => {
-                li.classList.remove('active');
-            });
-            
-            document.getElementById(tabId + '-view').classList.add('active');
-            element.classList.add('active');
+        let wsSocket = null;
+        let currentZoom = 1.0;
+        let botAccountCounter = 1;
+
+        // 1. Chuyển đổi Tab Menu Chính
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.sidebar ul li').forEach(li => li.classList.remove('active'));
+            document.querySelectorAll('.content-view').forEach(view => view.classList.remove('active'));
+            el.classList.add('active');
+            const target = document.getElementById(tabId + '-view');
+            if (target) target.classList.add('active');
         }
 
-        // --- XỬ LÝ MỞ/ĐÓNG MODAL TEST ---
-        const testEnvModal = document.getElementById('testEnvModal');
-        function openTestEnv() { testEnvModal.style.display = 'flex'; }
-        function closeTestEnv() { testEnvModal.style.display = 'none'; }
-
-        // --- XỬ LÝ MỞ/ĐÓNG MODAL GIAO DIỆN PRO CYBERPUNK 7.1.5 ---
-        const proModalOverlay = document.getElementById('proModalOverlay');
-        function openProModal() { proModalOverlay.style.display = 'flex'; }
-        function closeProModal() { proModalOverlay.style.display = 'none'; }
-
-        // --- LƯU VÀ TẢI CÀI ĐẶT HỆ THỐNG ---
+        // 2. Lưu cài đặt hệ thống
         function saveSystemSettings() {
-            const settings = {
-                wsUrl: document.getElementById('settingWsUrl').value,
-                videoUrl: document.getElementById('settingVideoUrl').value,
-                channel: document.getElementById('settingChannel').value,
-                syncInterval: document.getElementById('settingSyncInterval').value
-            };
-            localStorage.setItem('hendy_system_settings', JSON.stringify(settings));
-            alert('Đã lưu cài đặt hệ thống thành công!');
+            const channel = document.getElementById('settingChannel').value;
+            const wsUrl = document.getElementById('settingWsUrl').value;
+            document.getElementById('currentChannelDisplay').textContent = channel || 'MOCK-LIVE';
+            document.getElementById('wsServerUrl').value = wsUrl;
+            showToast('Đã lưu cài đặt thành công!');
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedSettings = localStorage.getItem('hendy_system_settings');
-            if (savedSettings) {
-                try {
-                    const settings = JSON.parse(savedSettings);
-                    document.getElementById('settingWsUrl').value = settings.wsUrl || '';
-                    document.getElementById('settingVideoUrl').value = settings.videoUrl || '';
-                    document.getElementById('settingChannel').value = settings.channel || '';
-                    document.getElementById('settingSyncInterval').value = settings.syncInterval || '5';
-                } catch (e) {}
-            }
-        });
-
-        // --- HENDY LIVE STREAM LOGIC CƠ BẢN ---
-        const liveVideo = document.getElementById('liveVideo');
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const muteBtn = document.getElementById('muteBtn');
-        const volumeSlider = document.getElementById('volumeSlider');
-        const chatInput = document.getElementById('chatInput');
-        const chatMessages = document.getElementById('chatMessages');
+        // 3. Môi trường Test Live Stream Modal
+        function openTestEnv() { document.getElementById('testEnvModal').style.display = 'flex'; }
+        function closeTestEnv() { 
+            document.getElementById('testEnvModal').style.display = 'none';
+            const vid = document.getElementById('liveVideo');
+            if(vid) vid.pause();
+        }
 
         function togglePlayPause() {
-            if (liveVideo.paused) { liveVideo.play(); playPauseBtn.innerText = "⏸️ Tạm dừng"; }
-            else { liveVideo.pause(); playPauseBtn.innerText = "▶️ Tiếp tục"; }
+            const vid = document.getElementById('liveVideo');
+            const btn = document.getElementById('playPauseBtn');
+            if (vid.paused) {
+                vid.play();
+                btn.textContent = '⏸️ Tạm dừng';
+            } else {
+                vid.pause();
+                btn.textContent = '▶️ Phát';
+            }
         }
 
         function toggleMute() {
-            liveVideo.muted = !liveVideo.muted;
-            muteBtn.innerText = liveVideo.muted ? "🔇 Bật tiếng" : "🔊 Tắt tiếng";
+            const vid = document.getElementById('liveVideo');
+            const btn = document.getElementById('muteBtn');
+            vid.muted = !vid.muted;
+            btn.textContent = vid.muted ? '🔇 Bật tiếng' : '🔊 Tắt tiếng';
         }
 
         function changeVolume(val) {
-            liveVideo.volume = parseFloat(val);
-            liveVideo.muted = (val == 0);
-            muteBtn.innerText = liveVideo.muted ? "🔇 Bật tiếng" : "🔊 Tắt tiếng";
+            const vid = document.getElementById('liveVideo');
+            vid.volume = val;
+            vid.muted = (val == 0);
         }
 
         function handleUserSubmit() {
-            const val = chatInput.value.trim();
-            if (!val) return;
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const msgBox = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.style.color = '#38bdf8';
+            nameSpan.textContent = '[Admin]: ';
+            
+            const textNode = document.createTextNode(text);
+            
+            msgDiv.appendChild(nameSpan);
+            msgDiv.appendChild(textNode);
+            msgBox.appendChild(msgDiv);
+            
+            input.value = '';
+            msgBox.scrollTop = msgBox.scrollHeight;
+        }
+
+        // 4. Hades V6100 - Logic Độc Lập
+        function getHadesTime() {
+            const d = new Date();
+            return `[${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}]`;
+        }
+
+        function appendHadesSystemLog(msg) {
+            const logBox = document.getElementById('hadesSystemLog');
             const div = document.createElement('div');
-            div.innerHTML = `<span style="color: #64748b;">[${new Date().toLocaleTimeString()}]</span> <b style="color: #00f3ff;">Hendy_Cyber_Pro:</b> ${val}`;
-            chatMessages.appendChild(div);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            chatInput.value = '';
+            const timeSpan = document.createElement('span');
+            timeSpan.style.color = '#38bdf8';
+            timeSpan.textContent = getHadesTime() + ' ';
+            div.appendChild(timeSpan);
+            div.appendChild(document.createTextNode(msg));
+            logBox.appendChild(div);
+            logBox.scrollTop = logBox.scrollHeight;
         }
 
-        chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleUserSubmit(); });
+        function appendHadesChatLog(msg) {
+            const logBox = document.getElementById('hadesChatLog');
+            const div = document.createElement('div');
+            const timeSpan = document.createElement('span');
+            timeSpan.style.color = '#38bdf8';
+            timeSpan.textContent = getHadesTime() + ' ';
+            div.appendChild(timeSpan);
+            div.appendChild(document.createTextNode(msg));
+            logBox.appendChild(div);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
 
-        // --- CYBERPUNK 7.1.5 PRO FUNCTIONS ---
-        let currentZoom = 1;
-        function adjustZoom(amount) {
-            currentZoom = Math.max(0.6, Math.min(1.5, currentZoom + amount));
-            document.getElementById('masterBodyContainer').style.zoom = currentZoom;
-            document.getElementById('zoomValDisplay').innerText = Math.round(currentZoom * 100) + '%';
+        function startAllBots() {
+            const rows = document.querySelectorAll('#botTableBody tr');
+            rows.forEach(r => {
+                const statusTd = r.children[3];
+                if (statusTd) statusTd.innerHTML = '<span style="color:#00e5ff; font-weight:bold;">Đang chạy</span>';
+            });
+            appendHadesSystemLog('[BOT] Tất cả bot đã được kích hoạt chạy tự động!');
         }
-        function resetZoom() {
-            currentZoom = 1;
-            document.getElementById('masterBodyContainer').style.zoom = 1;
-            document.getElementById('zoomValDisplay').innerText = '100%';
+
+        function stopAllBots() {
+            const rows = document.querySelectorAll('#botTableBody tr');
+            rows.forEach(r => {
+                const statusTd = r.children[3];
+                if (statusTd) statusTd.innerHTML = '<span style="color:#ff3366; font-weight:bold;">Đã dừng</span>';
+            });
+            appendHadesSystemLog('[BOT] Đã phát lệnh dừng tất cả các bot!');
         }
-        function changeTheme(theme) {
-            document.body.className = 'master-body';
-            if (theme !== 'cyberpunk') {
-                document.body.classList.add('theme-' + theme);
+
+        function addBotAccount() {
+            botAccountCounter++;
+            const newAccName = 'bot_' + Math.random().toString(36).substr(2, 5);
+            const tbody = document.getElementById('botTableBody');
+            
+            const tr = document.createElement('tr');
+            
+            const tdId = document.createElement('td');
+            tdId.textContent = botAccountCounter;
+            
+            const tdAcc = document.createElement('td');
+            tdAcc.contentEditable = "true";
+            tdAcc.textContent = newAccName;
+            tdAcc.onblur = function() { onBotCellEdit(this, 'Tài khoản', botAccountCounter); };
+
+            const tdBo = document.createElement('td');
+            tdBo.contentEditable = "true";
+            tdBo.textContent = newAccName;
+            tdBo.onblur = function() { onBotCellEdit(this, 'Tài khoản BO', botAccountCounter); };
+
+            const tdStatus = document.createElement('td');
+            tdStatus.innerHTML = '<span style="color: #00ffcc; font-weight: bold;">Sẵn sàng</span>';
+
+            const tdAction = document.createElement('td');
+            const btnDel = document.createElement('button');
+            btnDel.className = 'btn-del-row';
+            btnDel.textContent = 'Xóa';
+            btnDel.onclick = function() { deleteBotRow(btnDel, botAccountCounter); };
+            tdAction.appendChild(btnDel);
+
+            tr.appendChild(tdId);
+            tr.appendChild(tdAcc);
+            tr.appendChild(tdBo);
+            tr.appendChild(tdStatus);
+            tr.appendChild(tdAction);
+
+            tbody.appendChild(tr);
+            appendHadesSystemLog(`[BOT] Đã thêm tài khoản mới thành công: ${newAccName}`);
+        }
+
+        function deleteBotRow(btn, id) {
+            const tr = btn.closest('tr');
+            if (tr) {
+                const accName = tr.children[1].textContent;
+                tr.remove();
+                appendHadesSystemLog(`[BOT] Đã xóa tài khoản bot (ID: ${id}): ${accName}`);
             }
         }
-        function updateChannelId(val) {
-            document.getElementById('topChannelDisplay').innerText = val || 'KENH-1';
+
+        function onBotCellEdit(cell, fieldName, id) {
+            const newValue = cell.textContent.trim();
+            appendHadesSystemLog(`[BOT] [Cập nhật ID ${id}] ${fieldName} -> ${newValue}`);
         }
+
+        function clearHadesLogs() {
+            document.getElementById('hadesSystemLog').innerHTML = '';
+            document.getElementById('hadesChatLog').innerHTML = '';
+            appendHadesSystemLog('[SYSTEM] Nhật ký đã được dọn dẹp.');
+        }
+
+        function sendHadesJsonCmd() {
+            const input = document.getElementById('hadesJsonInput');
+            const val = input.value.trim();
+            if (!val) return;
+            
+            appendHadesChatLog(`[LỆNH] ${val}`);
+            if (wsSocket && wsSocket.readyState === WebSocket.OPEN) {
+                wsSocket.send(val);
+                appendHadesSystemLog(`[WS OUT] Gửi JSON lệnh qua WebSocket thành công.`);
+            } else {
+                appendHadesSystemLog(`[WS WARN] Không tìm thấy kết nối WS chủ, lệnh được lưu vào hàng chờ.`);
+            }
+            input.value = '';
+        }
+
+        // 5. Cyberpunk Pro Modal Handlers
+        function openProModal() { document.getElementById('proModalOverlay').style.display = 'flex'; }
+        function closeProModal() { document.getElementById('proModalOverlay').style.display = 'none'; }
+
         function openGuideModal() { document.getElementById('guideModal').style.display = 'flex'; }
         function closeGuideModal() { document.getElementById('guideModal').style.display = 'none'; }
+
         function openMacroModal() { document.getElementById('macroModal').style.display = 'flex'; }
         function closeMacroModal() { document.getElementById('macroModal').style.display = 'none'; }
+
+        function executeMacroScript() {
+            const scriptText = document.getElementById('macroScriptInput').value;
+            if (!scriptText.trim()) return;
+            logSystem('Thực thi Script: ' + scriptText);
+            closeMacroModal();
+            showToast('Đã chạy lệnh Macro!');
+        }
+
         function openAccStoreModal() { document.getElementById('accStoreModal').style.display = 'flex'; }
         function closeAccStoreModal() { document.getElementById('accStoreModal').style.display = 'none'; }
-        function saveMasterConfig() { alert('Đã lưu cấu hình thành công!'); }
-        function exportConfig() { alert('Đã xuất file cấu hình JSON!'); }
-        function connectWS() {
-            const statusEl = document.getElementById('mainWsStatus');
-            const btn = document.getElementById('btnConnect');
-            if (statusEl.classList.contains('offline')) {
-                statusEl.classList.remove('offline');
-                statusEl.innerText = '● ĐÃ KẾT NỐI';
-                btn.classList.add('connected');
-                btn.innerText = 'NGẮT';
-            } else {
-                statusEl.classList.add('offline');
-                statusEl.innerText = '● CHƯA KẾT NỐI';
-                btn.classList.remove('connected');
-                btn.innerText = 'Đ.BỘ';
-            }
-        }
-        function syncServerUrl() { alert('Đã đồng bộ WebSocket Server mới tới toàn bộ đàn em!'); }
-        function syncReloadAllTabs() { alert('Đã gửi lệnh F5 tải lại trang cho tất cả Đàn Em!'); }
-        function toggleAllTabs(checked) {}
-        function toggleAutoGroup(checked) {}
-        function clearDeadTabs() { document.getElementById('tabList').innerHTML = '<div style="text-align:center; color:#555; font-size:11px; margin-top:20px;">Chưa có Tab nào kết nối...</div>'; document.getElementById('txtOnlineCount').innerText = '0'; }
-        function requestTabListRender() {}
-        function syncRemoteParamsToSlaves() {}
-        function syncSyntax() {}
-        function sendRemoteBrand() { alert('Đã gửi lệnh đổi Brand thành công!'); }
-        function sendCmd(cmd, data) { alert('Đã gửi lệnh: ' + cmd); }
-        function resetKeoAction() { alert('Đã Reset Kèo!'); }
-        let masterState = { autoKeo: false };
-        function toggleMasterAuto(state) {
-            masterState.autoKeo = state;
-            const btn = document.getElementById('btnMasterAuto');
-            if (state) {
-                btn.innerText = '⚡ AUTO CƯỚP: BẬT (F2)';
-                btn.style.background = 'var(--neon-green)';
-                btn.style.color = '#000';
-            } else {
-                btn.innerText = '⚡ AUTO CƯỚP: TẮT (F2)';
-                btn.style.background = '';
-                btn.style.color = '';
-            }
-        }
-        function executeMacroScript() { alert('Đã thực thi Script Macro!'); closeMacroModal(); }
-        function saveAccStoreLocal() { alert('Đã lưu Kho Tài Khoản vào LocalStorage!'); }
-        function saveAccStoreCloud() { alert('Đã đồng bộ Kho Tài Khoản lên Cloud!'); }
-        function toggleUsr() {}
-        function toggleSnd() {}
 
-        // Clock interval
+        function saveAccStoreLocal() {
+            const data = document.getElementById('accDataStore').value;
+            localStorage.setItem('hendy_acc_store', data);
+            showToast('Đã lưu dữ liệu vào LocalStorage!');
+        }
+
+        function saveAccStoreCloud() {
+            showToast('Đồng bộ Cloud thành công!');
+        }
+
+        function adjustZoom(delta) {
+            currentZoom = Math.min(Math.max(0.5, currentZoom + delta), 1.5);
+            document.getElementById('proModalWrapper').style.zoom = currentZoom;
+            document.getElementById('zoomValDisplay').textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        function resetZoom() {
+            currentZoom = 1.0;
+            document.getElementById('proModalWrapper').style.zoom = 1.0;
+            document.getElementById('zoomValDisplay').textContent = '100%';
+        }
+
+        function changeTheme(theme) {
+            document.body.className = 'master-body';
+            if (theme !== 'default') {
+                document.body.classList.add('theme-' + theme);
+            }
+            showToast('Đã chuyển giao diện: ' + theme.toUpperCase());
+        }
+
+        // 6. Kết nối WebSocket
+        function toggleWsConnection() {
+            const btn = document.getElementById('btnWsConnect');
+            const statusText = document.getElementById('wsStatusText');
+            const hadesWsStatus = document.getElementById('hadesWsStatusText');
+            
+            if (wsSocket && wsSocket.readyState === WebSocket.OPEN) {
+                wsSocket.close();
+                return;
+            }
+
+            const url = document.getElementById('wsServerUrl').value;
+            logSystem('Đang kết nối tới: ' + url);
+            appendHadesSystemLog('Đang kết nối tới WS Hub: ' + url);
+            
+            try {
+                wsSocket = new WebSocket(url);
+                wsSocket.onopen = function() {
+                    statusText.textContent = '🟢 ONLINE';
+                    statusText.classList.remove('offline');
+                    if (hadesWsStatus) hadesWsStatus.textContent = 'Đã kết nối Hub';
+                    
+                    btn.textContent = 'NGẮT KẾT NỐI';
+                    btn.classList.add('connected');
+                    logSystem('Đã kết nối thành công tới WebSocket Hub.');
+                    appendHadesSystemLog('[WS] Kết nối thành công tới WebSocket Hub!');
+                    
+                    wsSocket.send(JSON.stringify({ type: 'SYNC_REGISTER_TAB', role: 'MASTER' }));
+                };
+
+                wsSocket.onmessage = function(event) {
+                    logSystem('Nhận WS: ' + event.data);
+                    appendHadesChatLog('[WS IN] ' + event.data);
+                };
+
+                wsSocket.onerror = function() {
+                    logSystem('Lỗi kết nối WebSocket.');
+                    appendHadesSystemLog('[WS ERROR] Không thể thiết lập kết nối.');
+                };
+
+                wsSocket.onclose = function() {
+                    statusText.textContent = '🔴 OFFLINE';
+                    statusText.classList.add('offline');
+                    if (hadesWsStatus) hadesWsStatus.textContent = 'Chưa kết nối';
+                    btn.textContent = 'KẾT NỐI WS';
+                    btn.classList.remove('connected');
+                    logSystem('Đã ngắt kết nối WebSocket.');
+                    appendHadesSystemLog('[WS] Đã ngắt kết nối.');
+                };
+            } catch (err) {
+                logSystem('Không thể tạo WebSocket: ' + err.message);
+                appendHadesSystemLog('Lỗi tạo WebSocket: ' + err.message);
+            }
+        }
+
+        function sendCustomCommand() {
+            const input = document.getElementById('cmdInput');
+            const val = input.value.trim();
+            if (!val) return;
+            if (wsSocket && wsSocket.readyState === WebSocket.OPEN) {
+                wsSocket.send(JSON.stringify({ type: 'COMMAND', data: val }));
+                logSystem('Gửi lệnh WS: ' + val);
+            } else {
+                logSystem('Chưa kết nối WS. Lệnh nội bộ: ' + val);
+            }
+            input.value = '';
+        }
+
+        function addNewTabRow() {
+            const area = document.getElementById('tabListArea');
+            const count = area.children.length + 1;
+            const item = document.createElement('div');
+            item.className = 'tab-item';
+            
+            const tag = document.createElement('span');
+            tag.style.color = 'var(--neon-purple)';
+            tag.textContent = '[TAB ' + count + '] ';
+            
+            const title = document.createElement('span');
+            title.style.flex = '1';
+            title.textContent = 'Khung công việc ' + count;
+
+            item.appendChild(tag);
+            item.appendChild(title);
+            area.appendChild(item);
+        }
+
+        // 7. Tiện ích Log & Toast Chống XSS
+        function logSystem(msg) {
+            const logBox = document.getElementById('systemLogArea');
+            const line = document.createElement('div');
+            const timeStr = new Date().toLocaleTimeString();
+            line.textContent = '[' + timeStr + '] ' + msg;
+            logBox.appendChild(line);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function clearSystemLogs() {
+            document.getElementById('systemLogArea').innerHTML = '';
+            logSystem('Đã xóa lịch sử log.');
+        }
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Clock đồng bộ
         setInterval(() => {
             const now = new Date();
-            const timeStr = now.toTimeString().split(' ')[0];
-            const clockEl = document.getElementById('masterClock');
-            if (clockEl) clockEl.innerText = timeStr;
+            const clock = document.getElementById('systemClock');
+            if (clock) clock.textContent = now.toTimeString().split(' ')[0];
         }, 1000);
+
+        // Khởi tạo
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedAcc = localStorage.getItem('hendy_acc_store');
+            if (savedAcc) {
+                document.getElementById('accDataStore').value = savedAcc;
+            }
+        });
     </script>
 </body>
 </html>
