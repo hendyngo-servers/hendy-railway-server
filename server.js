@@ -8,23 +8,29 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
+const SECRET_TOKEN = process.env.SECRET_TOKEN || 'hendy_secret_pro_key';
+
+// Bộ nhớ RAM lưu trữ tạm thời
 const clients = new Set();
 const activeSlaves = new Map();
-const activeBots = new Map(); // Quản lý danh sách Bot động
+const activeBots = new Map();
+const activeUsers = new Map([
+    [1, { id: 1, username: 'admin_hendy', role: 'Admin', status: 'Hoạt động' }],
+    [2, { id: 2, username: 'mod_hades', role: 'Mod', status: 'Hoạt động' }],
+    [3, { id: 3, username: 'test_user01', role: 'User', status: 'Khóa' }]
+]);
 
 app.use(express.json());
-// Serves static files từ thư mục public và thư mục gốc
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
-// Route chính trả về giao diện Dashboard
+// Route chính phục vụ trang Control Panel
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // API lấy danh sách Slaves
 app.get('/api/slaves', (req, res) => {
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     let slavesList = [];
     activeSlaves.forEach((client) => {
         slavesList.push({
@@ -36,13 +42,28 @@ app.get('/api/slaves', (req, res) => {
             lastSeen: new Date(client.lastSeen).toLocaleTimeString('vi-VN')
         });
     });
-    res.end(JSON.stringify(slavesList, null, 2));
+    res.json(slavesList);
 });
 
-// API lấy danh sách Bot active
+// API lấy danh sách Bots
 app.get('/api/bots', (req, res) => {
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify(Array.from(activeBots.values()), null, 2));
+    res.json(Array.from(activeBots.values()));
+});
+
+// API Quản lý Người dùng (Users CRUD)
+app.get('/api/users', (req, res) => {
+    res.json(Array.from(activeUsers.values()));
+});
+
+app.post('/api/users', (req, res) => {
+    const { username, role } = req.body;
+    if (!username) {
+        return res.status(400).json({ error: 'Tên đăng nhập không được để trống' });
+    }
+    const id = activeUsers.size + 1;
+    const newUser = { id, username, role: role || 'User', status: 'Hoạt động' };
+    activeUsers.set(id, newUser);
+    res.status(201).json(newUser);
 });
 
 // API gửi lệnh điều khiển nhanh
@@ -51,21 +72,32 @@ app.get('/send-command', (req, res) => {
     let count = 0;
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ action: `CHAT|${cmd}` }));
+            client.send(JSON.stringify({ action: `CHAT|${cmd}`, type: 'COMMAND', data: cmd }));
             count++;
         }
     });
     res.send(`🚀 Đã phát lệnh thành công cho ${count} thiết bị: [ ${cmd} ]`);
 });
 
-// WebSocket Server Event Processing
-wss.on('connection', (ws, req) => {
+// Giám sát kết nối WebSocket (Heartbeat Interval)
+const heartbeatInterval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (ws.isAlive === false) {
+            console.log('[WS] Phát hiện ngắt kết nối không phản hồi (Dead Client).');
+            return ws.terminate();
+        }
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 30000);
+
+wss.on('connection', (ws) => {
     clients.add(ws);
     ws.isAlive = true;
     let currentSlaveId = null;
-    
-    console.log(`[WS] Client kết nối từ IP: ${req.socket.remoteAddress}`);
-    ws.send(JSON.stringify({ type: 'SYSTEM', message: 'Kết nối thành công tới WebSocket Hub!' }));
+
+    console.log('[WS] Client kết nối thành công.');
+    ws.send(JSON.stringify({ type: 'SYSTEM', message: 'Kết nối thành công tới Hendy Central WebSocket Hub!' }));
 
     ws.on('pong', () => { ws.isAlive = true; });
 
@@ -75,9 +107,9 @@ wss.on('connection', (ws, req) => {
             const now = Date.now();
             console.log('[WS RECV]:', data);
 
-            // Xử lý PING từ Client để đo latency
+            // Phản hồi PING -> PONG tính Latency (Độ trễ)
             if (data.action === 'PING') {
-                ws.send(JSON.stringify({ action: 'PONG', time: data.time || now }));
+                ws.send(JSON.stringify({ action: 'PONG', time: data.time }));
                 return;
             }
 
@@ -85,10 +117,13 @@ wss.on('connection', (ws, req) => {
                 currentSlaveId = data.value?.id || ('slave_' + Math.random().toString(36).substring(2, 8));
                 ws.slaveId = currentSlaveId;
                 activeSlaves.set(currentSlaveId, {
-                    ws: ws, id: currentSlaveId,
+                    ws: ws,
+                    id: currentSlaveId,
                     name: data.value?.name || 'Khách',
                     role: data.value?.role || 'VIP_BOT',
-                    isOnLive: 1, url: '', lastSeen: now
+                    isOnLive: 1,
+                    url: '',
+                    lastSeen: now
                 });
             } else if (data.action === 'SYNC_STATUS') {
                 currentSlaveId = data.slaveId;
@@ -106,17 +141,17 @@ wss.on('connection', (ws, req) => {
                     status: data.status || 'RUNNING',
                     timestamp: data.timestamp || new Date().toLocaleTimeString('vi-VN')
                 });
-                console.log(`[BOT CREATED] ID: ${data.botId} \vert{} Acc:${data.account}`);
+                console.log(`[BOT CREATED] ID: ${data.botId} | Acc: ${data.account}`);
             }
 
-            // Broadcast dữ liệu/lệnh tới tất cả Client WebSocket khác
+            // Broadcast dữ liệu/lệnh tới tất cả WebSocket Clients khác
             wss.clients.forEach((client) => {
                 if (client !== ws && client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({ type: 'BROADCAST', data }));
                 }
             });
         } catch (e) {
-            console.error('[WS ERROR]: Lỗi xử lý message:', e.message);
+            console.error('[WS ERROR]: Lỗi định dạng JSON message', e);
         }
     });
 
@@ -129,7 +164,10 @@ wss.on('connection', (ws, req) => {
     });
 });
 
+wss.on('close', () => {
+    clearInterval(heartbeatInterval);
+});
+
 server.listen(PORT, () => {
     console.log(`🚀 [HENDY SERVER HUB] Đang chạy tại cổng: ${PORT}`);
-    console.log(`🌐 TRUY CẬP DỰ ÁN TẠI: http://localhost:${PORT}`);
 });
