@@ -1,7 +1,7 @@
 {
   "name": "hendy-server-hub",
   "version": "3.8.0",
-  "description": "Hendy Master Central Server Hub & Mock Live Environment",
+  "description": "Hendy Master Central Server Hub & Hades V6100 Control System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
