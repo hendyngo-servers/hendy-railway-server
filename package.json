@@ -1,13 +1,17 @@
 {
   "name": "hendy-server-hub",
   "version": "3.8.0",
-  "description": "Hendy Master Central Server Hub & Hades V6100 Control System",
+  "description": "Hendy Master Central Server Hub & Mock Live Environment",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node --watch server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
     "ws": "^8.13.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
